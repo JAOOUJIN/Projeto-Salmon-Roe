@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-class ClientHomeScreen extends StatelessWidget {
-  const ClientHomeScreen({super.key});
+class SearchScreen extends StatelessWidget {
+  const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Client Home'),
+        title: const Text('Buscar Produtos'),
       ),
       body: Center(
-        child: const Text('Client Home Screen'),
+        child: Text('Conteúdo da Busca'),
       ),
     );
   }
