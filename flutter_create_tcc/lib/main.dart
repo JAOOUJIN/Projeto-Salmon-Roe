@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_create_tcc/screens/profile_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login_screen.dart';
 import 'package:flutter_create_tcc/screens/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/search_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/account_data_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/payments_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +24,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Salmon Roe App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.orange,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const SplashScreen(),
       routes: {
@@ -29,6 +35,10 @@ class MyApp extends StatelessWidget {
         '/clientProfile': (context) => const ProfileScreen(),
         '/clientOrders': (context) => const OrdersScreen(),
         '/search': (context) => const SearchScreen(),
+        '/notifications': (context) => const NotificationsScreen(),
+        '/accountData': (context) => const AccountDataScreen(),
+        '/payments': (context) => const PaymentsScreen(),
+        '/configuration': (context) => const ConfigurationScreen(),
       },
     );
   }

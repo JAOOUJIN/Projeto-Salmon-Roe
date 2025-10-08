@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_create_tcc/screens/profile_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/search_screen.dart';
 
@@ -30,7 +30,10 @@ class _MenuClientScreenState extends State<MenuClientScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Menu - Salmon Roe"),
+        toolbarHeight: 0, 
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        automaticallyImplyLeading: false,
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
