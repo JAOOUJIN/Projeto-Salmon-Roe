@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
-import 'registration_screen.dart';
-import '../services/auth_services.dart';
+import '../providers/auth_provider.dart';
+import '../screens/registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _loginIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,17 +24,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     setState(() {
-      _isLoading = true;
+      authProvider.isLoading; 
     });
 
     try {
-      final result = await _authService.login(
+      final result = await authProvider.login(
         _loginIdController.text.trim(),
         _passwordController.text.trim(),
       );
@@ -46,6 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login realizado com sucesso!")),
         );
+
+        //Redireciona para o menu do cliente
         Navigator.pushReplacementNamed(context, '/menuClient');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -59,19 +62,20 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Erro no Login: Credenciais inválidas.')),
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isLoading = authProvider.isLoading;
+
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
         padding: const EdgeInsets.all(27),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
               Color.fromARGB(255, 247, 121, 71),
@@ -116,12 +120,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     return 'Campo obrigatório';
                   }
 
-                  final emailRegex = RegExp(
-                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                  );
-                  final phoneRegex = RegExp(
-                    r'^[0-9]{11}$',
-                  );
+                  final emailRegex =
+                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final phoneRegex = RegExp(r'^[0-9]{11}$');
 
                   if (!emailRegex.hasMatch(value) &&
                       !phoneRegex.hasMatch(value)) {
@@ -167,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Botão Acessar
               SizedBox(
                 width: double.infinity,
-                child: _isLoading
+                child: isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
                           color: Color.fromARGB(255, 233, 118, 73),
@@ -177,7 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.all(17),
-                          backgroundColor: Color.fromARGB(255, 233, 118, 73),
+                          backgroundColor:
+                              const Color.fromARGB(255, 233, 118, 73),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(7),
                           ),

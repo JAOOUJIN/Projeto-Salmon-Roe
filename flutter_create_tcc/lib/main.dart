@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login_screen.dart';
 import 'package:flutter_create_tcc/screens/registration_screen.dart';
@@ -10,10 +11,17 @@ import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/account_data_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/payments_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
-
+import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

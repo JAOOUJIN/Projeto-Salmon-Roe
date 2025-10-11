@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_services.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -16,9 +17,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
-  final AuthService _authService = AuthService();
-  bool _isLoading = false;
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -28,23 +26,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.dispose();
   }
 
-  void _register() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("As senhas não coincidem.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("As senhas não coincidem.")),
+      );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    final result = await _authService.register(
+    setState(() {}); // força rebuild visual
+
+    final result = await authProvider.register(
       _emailController.text.trim(),
       _passwordController.text.trim(),
       _phoneController.text.trim(),
@@ -56,20 +52,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Usuário registrado com sucesso!")),
       );
-      Navigator.pop(context);
+
+      // Redireciona direto para o menu do cliente
+      Navigator.pushReplacementNamed(context, '/menuClient');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['error'] ?? "Erro ao registrar.")),
       );
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() {}); 
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isLoading = authProvider.isLoading;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -102,6 +101,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 30),
 
+                      // E-mail
                       TextFormField(
                         controller: _emailController,
                         cursorColor: const Color(0xFFFFA07A),
@@ -126,9 +126,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Campo obrigatório';
                           }
-                          final emailRegex = RegExp(
-                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                          );
+                          final emailRegex =
+                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                           if (!emailRegex.hasMatch(value)) {
                             return 'Digite um e-mail válido';
                           }
@@ -137,6 +136,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 10),
 
+                      // Telefone
                       TextFormField(
                         controller: _phoneController,
                         cursorColor: const Color(0xFFFFA07A),
@@ -174,6 +174,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 10),
 
+                      // Senha
                       TextFormField(
                         controller: _passwordController,
                         cursorColor: const Color(0xFFFFA07A),
@@ -211,6 +212,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 10),
 
+                      // Confirmar senha
                       TextFormField(
                         controller: _confirmPasswordController,
                         cursorColor: const Color(0xFFFFA07A),
@@ -244,9 +246,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 30),
 
+                      // Botão Registrar
                       SizedBox(
                         width: double.infinity,
-                        child: _isLoading
+                        child: isLoading
                             ? const Center(
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
@@ -255,15 +258,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             : ElevatedButton(
                                 onPressed: _register,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(
-                                    255,
-                                    233,
-                                    118,
-                                    73,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 233, 118, 73),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(7),
                                   ),
@@ -280,6 +278,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 10),
 
+                      // Botão voltar
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(

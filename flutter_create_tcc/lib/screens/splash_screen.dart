@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; 
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,11 +13,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    // Simula uma espera para carregar recursos 
+    await Future.delayed(const Duration(seconds: 4));
+
+    final success = await auth.tryAutoLogin();
+
+    if (!mounted) return;
+
+    // Se logado ou não, vai pro menu do cliente
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/menuClient');
+    } else {
+      Navigator.pushReplacementNamed(context, '/menuClient');
+    }
   }
 
   @override
@@ -28,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: Colors.orange,
           ),
         ),
       ),

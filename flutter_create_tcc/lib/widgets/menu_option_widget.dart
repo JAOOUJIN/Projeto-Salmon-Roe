@@ -14,15 +14,52 @@ class MenuOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      margin: const EdgeInsets.only(top: 1),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.orange),
-        title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
-      ),
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          splashColor: Colors.orange.withAlpha((0.2 * 255).toInt()),
+          highlightColor: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            child: Row(
+              children: [
+                // Ícone principal
+                Icon(
+                  icon,
+                  color: const Color(0xFFFF7043), 
+                  size: 24,
+                ),
+                const SizedBox(width: 20),
+
+                // Título
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+
+                // Ícone de seta
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Divider(
+          height: 1,
+          thickness: 0.5,
+          color: Color(0xFFE0E0E0),
+          indent: 60, 
+        ),
+      ],
     );
   }
 }
