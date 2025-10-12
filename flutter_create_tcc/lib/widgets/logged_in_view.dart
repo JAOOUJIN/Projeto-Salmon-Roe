@@ -27,8 +27,7 @@ class LoggedInView extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundColor:
-                          const Color.fromARGB(255, 238, 130, 30),
+                      backgroundColor: const Color.fromARGB(255, 238, 130, 30),
                       child: const Text("🍣", style: TextStyle(fontSize: 28)),
                     ),
                     const SizedBox(width: 16),
@@ -45,10 +44,7 @@ class LoggedInView extends StatelessWidget {
                         const SizedBox(height: 5),
                         const Text(
                           "Cliente Salmon Roe",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                       ],
                     ),
@@ -72,6 +68,16 @@ class LoggedInView extends StatelessWidget {
                 icon: Icons.credit_card,
                 title: "Pagamentos",
                 onTap: () => Navigator.pushNamed(context, '/payments'),
+              ),
+              MenuOption(
+                icon: Icons.history,
+                title: "Histórico de Pedidos",
+                onTap: () => Navigator.pushNamed(context, '/orderHistory'),
+              ),
+              MenuOption(
+                icon: Icons.location_on,
+                title: "Endereços",
+                onTap: () => Navigator.pushNamed(context, '/addresses'),
               ),
               MenuOption(
                 icon: Icons.settings,

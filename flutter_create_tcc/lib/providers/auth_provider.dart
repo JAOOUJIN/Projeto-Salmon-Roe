@@ -24,26 +24,43 @@ class AuthProvider with ChangeNotifier {
 
     _isLoading = false;
 
-    if (result['success']) {
-      final data = result['data'];
+    if (result['success'] == true) {
 
-      //Extrai token e dados do usuário
-      _token = data['token'];
-      _user = UserModel.fromJson(data['user'] ?? {});
+      final responseData = result['data'] as Map<String, dynamic>?;
 
-      //Salva localmente
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', _token!);
-      await prefs.setString('user', jsonEncode(_user!.toJson()));
+      final data = (responseData?['data'] ?? responseData) as Map<String, dynamic>?;
 
-      notifyListeners();
+      if (data != null) {
+        _token = data['token'] as String?;
+        final userData = data['user'] as Map<String, dynamic>?;
+
+        if (userData != null && _token != null) {
+          _user = UserModel.fromJson(userData);
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', _token!);
+          await prefs.setString('user', jsonEncode(_user!.toJson()));
+
+          notifyListeners();
+          return {'success': true, 'data': {'user': userData, 'token': _token}};
+        } else {
+          _user = null;
+          _token = null;
+          return {'success': false, 'error': 'Dados de usuário incompletos.'};
+        }
+      }
     }
 
+    notifyListeners();
     return result;
   }
 
-  // 🧾 REGISTER
-  Future<Map<String, dynamic>> register(String email, String password, String phone) async {
+  // REGISTER
+  Future<Map<String, dynamic>> register(
+    String email,
+    String password,
+    String phone,
+  ) async {
     _isLoading = true;
     notifyListeners();
 

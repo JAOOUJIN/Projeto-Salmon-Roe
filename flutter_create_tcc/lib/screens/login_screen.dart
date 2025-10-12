@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_text_field.dart';
 import '../screens/registration_screen.dart';
+import '../widgets/auth_logo_animated.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     setState(() {
-      authProvider.isLoading; 
+      authProvider.isLoading;
     });
 
     try {
@@ -48,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
           const SnackBar(content: Text("Login realizado com sucesso!")),
         );
 
-        //Redireciona para o menu do cliente
         Navigator.pushReplacementNamed(context, '/menuClient');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,12 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(27),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 247, 121, 71),
-              Color.fromARGB(255, 79, 79, 79),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [Color(0xFFFF7043), Color(0xFF3E2723)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: Form(
@@ -90,38 +88,31 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Logo animada
+              const AuthLogoAnimated(
+                imagePath: 'assets/images/logo.png',
+                size: 250,
+              ),
               const Text(
                 "Digite os dados de acesso abaixo:",
                 style: TextStyle(color: Color(0xFFF5F5F5), fontSize: 16),
               ),
               const SizedBox(height: 30),
 
-              // Campo Login (E-mail ou Telefone)
-              TextFormField(
+              // ✅ Campo Login (E-mail ou Telefone)
+              AuthTextField(
                 controller: _loginIdController,
+                label: "Digite o seu e-mail ou telefone",
+                icon: Icons.person,
                 keyboardType: TextInputType.emailAddress,
-                cursorColor: const Color(0xFFFFA07A),
-                style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 14),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white10,
-                  hintText: "Digite o seu e-mail ou telefone",
-                  hintStyle: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Campo obrigatório';
                   }
 
-                  final emailRegex =
-                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
                   final phoneRegex = RegExp(r'^[0-9]{11}$');
 
                   if (!emailRegex.hasMatch(value) &&
@@ -134,25 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Campo Senha
-              TextFormField(
+              // ✅ Campo Senha
+              AuthTextField(
                 controller: _passwordController,
+                label: "Digite sua senha",
+                icon: Icons.lock,
                 obscureText: true,
-                cursorColor: const Color(0xFFFFA07A),
-                style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 14),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white10,
-                  hintText: "Digite sua senha",
-                  hintStyle: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Campo obrigatório';
@@ -163,7 +141,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 30),
+
+              // " ✅ Esqueceu a senha"
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    // abrir tela de recuperação
+                  },
+                  child: const Text(
+                    "Esqueceu a senha?",
+                    style: TextStyle(
+                      color: Color(0xFFF5F5F5),
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
 
               // Botão Acessar
               SizedBox(
@@ -171,25 +167,54 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
-                          color: Color.fromARGB(255, 233, 118, 73),
+                          color: Color(0xFFFFA07A),
                         ),
                       )
-                    : ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(17),
-                          backgroundColor:
-                              const Color.fromARGB(255, 233, 118, 73),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7),
+                    : Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color.fromARGB(255, 233, 118, 73),
+                              Color.fromARGB(255, 240, 145, 110),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          borderRadius: BorderRadius.circular(7),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(
+                                (0.2 * 255).toInt(),
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          "Acessar",
-                          style: TextStyle(
-                            color: Color(0xFF1A1A1A),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                        child: ElevatedButton(
+                          onPressed: isLoading ? null : _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.login, color: Color(0xFF1A1A1A)),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Entrar",
+                                style: TextStyle(
+                                  color: Color(0xFF1A1A1A),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -200,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white30, width: 0.8),
+                  border: Border.all(color: Colors.white38, width: 0.8),
                   borderRadius: BorderRadius.circular(7),
                 ),
                 child: TextButton(
@@ -212,10 +237,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     );
                   },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white.withAlpha(
+                      (0.85 * 255).toInt(),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
                   child: const Text(
                     "Crie sua conta",
                     style: TextStyle(
-                      color: Color(0xFFF5F5F5),
+                      color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),

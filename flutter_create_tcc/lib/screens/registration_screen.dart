@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../widgets/auth_text_field.dart';
+import '../widgets/auth_logo_animated.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -30,15 +32,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("As senhas não coincidem.")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("As senhas não coincidem.")));
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    setState(() {}); // força rebuild visual
+    setState(() {}); 
 
     final result = await authProvider.register(
       _emailController.text.trim(),
@@ -52,16 +54,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Usuário registrado com sucesso!")),
       );
-
-      // Redireciona direto para o menu do cliente
-      Navigator.pushReplacementNamed(context, '/menuClient');
+      Navigator.pushReplacementNamed(context, '/login');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['error'] ?? "Erro ao registrar.")),
       );
     }
 
-    setState(() {}); 
+    setState(() {});
   }
 
   @override
@@ -75,9 +75,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color.fromARGB(255, 233, 118, 73), Color(0xFF4F4F4F)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [Color(0xFFFF7043), Color(0xFF3E2723)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SingleChildScrollView(
@@ -94,6 +94,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Logo
+                      const AuthLogoAnimated(
+                        imagePath: 'assets/images/logo.png',
+                        size: 250,
+                      ),
                       const Text(
                         "Crie sua conta preenchendo os campos abaixo:",
                         style: TextStyle(color: Colors.white, fontSize: 16),
@@ -102,32 +107,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       const SizedBox(height: 30),
 
                       // E-mail
-                      TextFormField(
+                      AuthTextField(
                         controller: _emailController,
-                        cursorColor: const Color(0xFFFFA07A),
-                        style: const TextStyle(
-                          color: Color(0xFFF5F5F5),
-                          fontSize: 14,
-                        ),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white10,
-                          hintText: "E-mail",
-                          hintStyle: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(7),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                        label: "E-mail",
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Campo obrigatório';
                           }
-                          final emailRegex =
-                              RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                          final emailRegex = RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          );
                           if (!emailRegex.hasMatch(value)) {
                             return 'Digite um e-mail válido';
                           }
@@ -137,26 +128,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       const SizedBox(height: 10),
 
                       // Telefone
-                      TextFormField(
+                      AuthTextField(
                         controller: _phoneController,
-                        cursorColor: const Color(0xFFFFA07A),
-                        style: const TextStyle(
-                          color: Color(0xFFF5F5F5),
-                          fontSize: 14,
-                        ),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white10,
-                          hintText: "Telefone (DDD + número)",
-                          hintStyle: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(7),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                        label: "Telefone (DDD + número)",
+                        icon: Icons.phone_android,
                         keyboardType: TextInputType.phone,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -175,27 +150,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       const SizedBox(height: 10),
 
                       // Senha
-                      TextFormField(
+                      AuthTextField(
                         controller: _passwordController,
-                        cursorColor: const Color(0xFFFFA07A),
-                        style: const TextStyle(
-                          color: Color(0xFFF5F5F5),
-                          fontSize: 14,
-                        ),
+                        label: "Senha",
+                        icon: Icons.lock_outline,
                         obscureText: true,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white10,
-                          hintText: "Senha",
-                          hintStyle: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(7),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Campo obrigatório';
@@ -213,27 +172,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       const SizedBox(height: 10),
 
                       // Confirmar senha
-                      TextFormField(
+                      AuthTextField(
                         controller: _confirmPasswordController,
-                        cursorColor: const Color(0xFFFFA07A),
-                        style: const TextStyle(
-                          color: Color(0xFFF5F5F5),
-                          fontSize: 14,
-                        ),
+                        label: "Confirme sua senha",
+                        icon: Icons.lock_reset,
                         obscureText: true,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white10,
-                          hintText: "Confirme sua senha",
-                          hintStyle: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(7),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Confirme sua senha';
@@ -255,43 +198,80 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : ElevatedButton(
-                                onPressed: _register,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 233, 118, 73),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(7),
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color.fromARGB(
+                                        255,
+                                        233,
+                                        118,
+                                        73,
+                                      ), 
+                                      Color.fromARGB(
+                                        255,
+                                        240,
+                                        145,
+                                        110,
+                                      ), 
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
+                                  borderRadius: BorderRadius.circular(7),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
-                                child: const Text(
-                                  "Registrar",
-                                  style: TextStyle(
-                                    color: Color(0xFF1A1A1A),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                child: ElevatedButton(
+                                  onPressed: _register,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(7),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Registrar",
+                                    style: TextStyle(
+                                      color: Color(0xFF1A1A1A),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               ),
                       ),
                       const SizedBox(height: 10),
 
-                      // Botão voltar
+                      // Botão "Já tenho uma conta"
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white70, width: 0.8),
+                          border: Border.all(color: Colors.white38, width: 0.8),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white.withAlpha((0.85 * 255).toInt()),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
                           child: const Text(
                             "Já tenho uma conta",
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
