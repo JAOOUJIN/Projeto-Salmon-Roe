@@ -13,8 +13,7 @@ class OrdersScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Text('Pedido 1: Sushi de Salmão - Status: Entregue'),
-            Text('Pedido 2: Temaki de Atum - Status: Em preparo'),
+            Text('Nenhum pedido encontrado.'),
           ],
         ),
       ),

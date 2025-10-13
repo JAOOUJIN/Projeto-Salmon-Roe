@@ -18,6 +18,11 @@ const UserSchema = new mongoose.Schema({
         unique: false,
         trim: true,
     },
+    name: {
+        type: String,
+        required: false,
+        trim: true,
+    },
 });
 
 module.exports = mongoose.model('User', UserSchema);

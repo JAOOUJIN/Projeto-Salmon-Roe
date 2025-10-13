@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const router = express.Router();
-const JWT_SECRET = 'seu123'; 
+const JWT_SECRET = 'seu123';
 
 // Rota de Registro
 router.post('/register', async (req, res) => {
@@ -42,7 +42,18 @@ router.post('/login', async (req, res) => {
 
         // Geração do token
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token, message: 'Login bem-sucedido' });
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    _id: user._id,
+                    email: user.email,
+                    phone: user.phone,
+                    name: user.name || null
+                },
+                token: token
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: 'Erro no servidor' });
     }
