@@ -136,7 +136,7 @@ Servidor rodando na porta 5000
 Conectado ao MongoDB!
 ```
 
-### ***Running Project - Flutter and Android Studio***
+### ***Running Front-End (UI) - Flutter and Android Studio***
 **Step 1 - Open the Project in VS Code**
 ___
 1. Open **VS Code**.
