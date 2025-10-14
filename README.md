@@ -3,7 +3,28 @@
 ## Introduction 
 The following project aims to develop a mobile application for the external community, namely the oriental restaurant ***Salmon Roe***, as a required component for the evaluation of the discipline ***Projeto Integrado de Extensão 1***, taught by Prof. Marcelo T. Santana, M.Sc.
 
-## Technologies
+## Key Features
+- Orders placed directly by customers;
+- In-app payment;
+- Connection with the [dashboard]();
+
+> A link to the *dashboard application* will be added soon.
+
+## Objectives
+- Develop a functional mobile application
+- Integrate a non-relational database (MongoDB) and a Node.js backend
+- Implement a user-friendly interface using Flutter and Dart
+- Establish full connectivity with the restaurant’s dashboard
+
+## System Definitions
+- Mobile Application (Frontend)
+- Backend Server (API)
+- Database
+- Dashboard (Administrative Panel)
+- Project Management and Deployment Tools
+
+## Required Technologies
+Below is the step-by-step guide for installing the technologies required to run the app.
 As technologies for the development of the mobile app, it was decided that we will use the following technologies — listed in the table beside, along with brief descriptions and documentation.
 
 |Technology|Description|Documentation|
@@ -17,9 +38,6 @@ As technologies for the development of the mobile app, it was decided that we wi
 |![Azure](https://img.shields.io/badge/azuredevops-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white)|Project management tool|[Click here to read documentation](https://learn.microsoft.com/en-us/azure/devops/?view=azure-devops)|
 
 > All badges used are sourced from the repository: https://github.com/Ileriayo/markdown-badges#. Copyright © 2025 [Ileriayo](https://github.com/Ileriayo). All rights reserved.
-
-## Required Technologies
-Below is the step-by-step guide for installing the technologies required to run the app.
 
 ### ***Installing Flutter***
 **Step 1 - Flutter SDK (with Dart)**
