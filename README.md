@@ -188,7 +188,11 @@ ________
   <a href="https://github.com/BizerraGuU" target="_blank">Gustavo B. Andrade</a>, 
   <a href="https://github.com/IgorLima100" target="_blank">Igor M. França</a>, 
   <a href="https://github.com/JeffersonBJesus" target="_blank">Jefferson B. L. Jesus</a>
+<<<<<<< HEAD
   <a href="https://github.com/JAOOUJIN" target="_blank">Seung Jin J. Casierra</a>
+=======
+  <a href="https://github.com/JAOOUJIN" target="_blank">Seung Jin J. Cassiera</a>
+>>>>>>> 0ff4dc61670e5b94d3fb987b4323a63244c756ac
   <a href="https://github.com/Vitor0608" target="_blank">Vitor A. Santos</a>
 </p>
 
