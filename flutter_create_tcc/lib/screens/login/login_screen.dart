@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/auth_text_field.dart';
-import '../screens/registration_screen.dart';
-import '../widgets/auth_logo_animated.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/auth_text_field.dart';
+import 'registration_screen.dart';
+import '../../widgets/auth_logo_animated.dart';
 
+// Tela de Login
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -26,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Função para realizar o login
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -99,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // ✅ Campo Login (E-mail ou Telefone)
+              // Campo Login (E-mail ou Telefone)
               AuthTextField(
                 controller: _loginIdController,
                 label: "Digite o seu e-mail ou telefone",
@@ -125,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 10),
 
-              // ✅ Campo Senha
+              //Campo Senha
               AuthTextField(
                 controller: _passwordController,
                 label: "Digite sua senha",
@@ -142,12 +144,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
 
-              // " ✅ Esqueceu a senha"
+              // "Esqueceu a senha"
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // abrir tela de recuperação
+                    Navigator.pushNamed(context, '/forgetPassword');
                   },
                   child: const Text(
                     "Esqueceu a senha?",

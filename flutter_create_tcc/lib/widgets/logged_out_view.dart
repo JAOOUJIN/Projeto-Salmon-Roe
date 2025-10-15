@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Tela de Visualização do Usuário Deslogado
 class LoggedOutView extends StatelessWidget {
   const LoggedOutView({super.key});
 

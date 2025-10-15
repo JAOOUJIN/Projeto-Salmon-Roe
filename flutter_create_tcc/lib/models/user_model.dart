@@ -3,12 +3,14 @@ class UserModel {
   final String email;
   final String? phone;
   final String? name;
+  final String? cpf;
 
   UserModel({
     required this.id,
     required this.email,
     this.phone,
     this.name,
+    this.cpf,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class UserModel {
       email: json['email'] ?? '',
       phone: json['phone'],
       name: json['name'],
+      cpf: json['cpf'],
     );
   }
 
@@ -26,9 +29,10 @@ class UserModel {
       'email': email,
       'phone': phone,
       'name': name,
+      'cpf': cpf,
     };
   }
 
   @override
-  String toString() => 'User(id: $id, email: $email, phone: $phone, name: $name)';
+  String toString() => 'User(id: $id, email: $email, phone: $phone, name: $name, cpf: $cpf)';
 }

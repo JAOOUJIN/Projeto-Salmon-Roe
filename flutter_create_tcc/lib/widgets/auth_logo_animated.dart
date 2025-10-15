@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Widget animado para o logo na tela de autenticação (Login e Registro).
 class AuthLogoAnimated extends StatefulWidget {
   final String imagePath;
   final double size;

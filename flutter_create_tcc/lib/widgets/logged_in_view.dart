@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'menu_option_widget.dart';
 
+// Tela de Visualização do Usuário Logado
 class LoggedInView extends StatelessWidget {
   const LoggedInView({super.key});
 
@@ -35,7 +36,7 @@ class LoggedInView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?['email'] ?? "Usuário desconhecido",
+                          user?['name'] ?? user?['email'] ?? 'Usuário',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

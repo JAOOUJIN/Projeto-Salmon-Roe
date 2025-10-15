@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Widget customizado para opções de menu com ícone, título e ação de toque.
 class MenuOption extends StatelessWidget {
   final IconData icon;
   final String title;

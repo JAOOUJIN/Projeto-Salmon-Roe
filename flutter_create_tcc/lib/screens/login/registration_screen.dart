@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/auth_logo_animated.dart';
+import '../../../providers/auth_provider.dart';
+import '../../widgets/auth_text_field.dart';
+import '../../widgets/auth_logo_animated.dart';
 
+// Tela de Registro
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -15,8 +16,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
   @override
@@ -28,6 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.dispose();
   }
 
+  // Função de registro
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -40,7 +41,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    setState(() {}); 
+    setState(() {});
 
     final result = await authProvider.register(
       _emailController.text.trim(),
@@ -202,18 +203,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
                                     colors: [
-                                      Color.fromARGB(
-                                        255,
-                                        233,
-                                        118,
-                                        73,
-                                      ), 
-                                      Color.fromARGB(
-                                        255,
-                                        240,
-                                        145,
-                                        110,
-                                      ), 
+                                      Color.fromARGB(255, 233, 118, 73),
+                                      Color.fromARGB(255, 240, 145, 110),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -221,7 +212,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   borderRadius: BorderRadius.circular(7),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withAlpha((0.2 * 255).toInt()),
+                                      color: Colors.black.withAlpha(
+                                        (0.2 * 255).toInt(),
+                                      ),
                                       blurRadius: 6,
                                       offset: const Offset(0, 3),
                                     ),
@@ -262,7 +255,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         child: TextButton(
                           onPressed: () => Navigator.pop(context),
                           style: TextButton.styleFrom(
-                            foregroundColor: Colors.white.withAlpha((0.85 * 255).toInt()),
+                            foregroundColor: Colors.white.withAlpha(
+                              (0.85 * 255).toInt(),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
                           child: const Text(

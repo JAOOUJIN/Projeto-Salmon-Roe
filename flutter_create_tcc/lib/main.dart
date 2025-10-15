@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
-import 'package:flutter_create_tcc/screens/login_screen.dart';
-import 'package:flutter_create_tcc/screens/registration_screen.dart';
+import 'package:flutter_create_tcc/screens/login/login_screen.dart';
+import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
-import 'package:flutter_create_tcc/screens/profile/account_data_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/payments_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
+import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
 
+// Ponto de entrada da aplicação
 void main() {
   runApp(
     MultiProvider(
@@ -47,6 +51,9 @@ class MyApp extends StatelessWidget {
         '/accountData': (context) => const AccountDataScreen(),
         '/payments': (context) => const PaymentsScreen(),
         '/configuration': (context) => const ConfigurationScreen(),
+        '/personalInfo': (context) => const PersonalInfoScreen(),
+        '/accessInfo': (context) => const AccessInfoScreen(),
+        '/forgetPassword': (context) => const ForgetPasswordScreen(),
       },
     );
   }

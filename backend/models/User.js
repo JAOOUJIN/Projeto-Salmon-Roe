@@ -23,6 +23,12 @@ const UserSchema = new mongoose.Schema({
         required: false,
         trim: true,
     },
+    cpf: {
+        type: String,
+        required: false,
+        unique: false,
+        trim: true,
+    },
 });
 
 module.exports = mongoose.model('User', UserSchema);
