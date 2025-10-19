@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const authRoutes = require('./routes/auth'); 
+const authRoutes = require('./routes/authRoutes'); 
+const userRoutes = require('./routes/userRoutes');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,10 +12,12 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('Conectado ao MongoDB!'))
   .catch(err => console.error('Erro de conexão ao MongoDB:', err));
 
+app.use(cors());
 app.use(express.json());
 
-// Usa as rotas de autenticação
+// Rotas
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 
 app.get('/', (req, res) => {
   res.send('Servidor do Salmon Roe está rodando!');

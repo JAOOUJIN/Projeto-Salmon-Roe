@@ -15,6 +15,11 @@ import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
 import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
+import 'package:flutter_create_tcc/screens/address_screen.dart';
+import 'package:flutter_create_tcc/screens/add_address_screen.dart';
+import 'package:flutter_create_tcc/screens/edit_address_screen.dart';
+import 'package:flutter_create_tcc/models/address_model.dart';
+
 
 // Ponto de entrada da aplicação
 void main() {
@@ -54,6 +59,9 @@ class MyApp extends StatelessWidget {
         '/personalInfo': (context) => const PersonalInfoScreen(),
         '/accessInfo': (context) => const AccessInfoScreen(),
         '/forgetPassword': (context) => const ForgetPasswordScreen(),
+        '/addresses': (context) => const AddressScreen(),
+        '/addAddress': (context) => const AddAddressScreen(),
+        '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
       },
     );
   }

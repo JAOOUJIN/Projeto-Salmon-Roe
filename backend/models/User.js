@@ -1,5 +1,15 @@
 const mongoose = require('mongoose');
 
+const addressSchema = new mongoose.Schema({
+  street: String,
+  number: String,
+  city: String,
+  state: String,
+  zip: String,
+  complement: String,
+  neighborhood: String,
+});
+
 const UserSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -29,6 +39,7 @@ const UserSchema = new mongoose.Schema({
         unique: false,
         trim: true,
     },
+    addresses: [addressSchema],
 });
 
 module.exports = mongoose.model('User', UserSchema);
