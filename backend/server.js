@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes'); 
 const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
+const saleRoutes = require('./routes/saleRoutes');
 const cors = require('cors');
 
 const app = express();
@@ -18,6 +20,8 @@ app.use(express.json());
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/product', productRoutes);
+app.use('/api/sale', saleRoutes);
 
 app.get('/', (req, res) => {
   res.send('Servidor do Salmon Roe está rodando!');
