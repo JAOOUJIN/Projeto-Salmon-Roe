@@ -10,7 +10,7 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-// Adicionar produto (protegido, para admins)
+// Adicionar produto ADM
 exports.addProduct = async (req, res) => {
   const { ds_produto, vl_produto } = req.body;
   try {

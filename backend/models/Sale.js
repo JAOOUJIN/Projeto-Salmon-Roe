@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const SaleItemSchema = new mongoose.Schema({
   cd_produto: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Product',                       
     required: true,
   },
   qt_item: {
