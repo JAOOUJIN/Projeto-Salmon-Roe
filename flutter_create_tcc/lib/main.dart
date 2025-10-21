@@ -15,9 +15,9 @@ import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
 import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
-import 'package:flutter_create_tcc/screens/address_screen.dart';
-import 'package:flutter_create_tcc/screens/add_address_screen.dart';
-import 'package:flutter_create_tcc/screens/edit_address_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
 import 'package:flutter_create_tcc/models/address_model.dart';
 
 

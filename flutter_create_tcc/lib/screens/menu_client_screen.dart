@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/search_screen.dart';
-import 'package:flutter_create_tcc/screens/address_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 
 class MenuClientScreen extends StatefulWidget {
   const MenuClientScreen({super.key});
