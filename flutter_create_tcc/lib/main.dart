@@ -19,6 +19,7 @@ import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
 import 'package:flutter_create_tcc/models/address_model.dart';
+import 'package:flutter_create_tcc/providers/product_provider.dart';
 
 
 // Ponto de entrada da aplicação
@@ -27,6 +28,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
       ],
       child: const MyApp(),
     ),

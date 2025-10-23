@@ -9,7 +9,7 @@ router.get('/', getProducts);
 
 // Rotas protegidas ADMIN
 router.use(protect);
-router.post('/', addProduct);
+router.post('/add', addProduct);
 router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
 

@@ -20,7 +20,7 @@ app.use(express.json());
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/product', productRoutes);
+app.use('/api/products', productRoutes);
 app.use('/api/sale', saleRoutes);
 
 app.get('/', (req, res) => {

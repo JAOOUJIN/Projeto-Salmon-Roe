@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import '../models/address_model.dart'; // Adicionado para AddressModel
+import '../models/address_model.dart'; 
 import '../services/auth_services.dart';
 import '../services/user_services.dart';
 

@@ -3,28 +3,21 @@ import '../models/product_model.dart';
 
 class ProductServices {
   final Dio dio = Dio();
-  final String baseUrl = "http://10.0.2.2:5000/api/product";
+  final String baseUrl = "http://10.0.2.2:5000/api/products";
 
-  Future<Map<String, dynamic>> getProducts({required String token}) async {
+  // Listar todos os produtos (sem token)
+  Future<List<ProductModel>> getProducts() async {
     try {
-      final response = await dio.get(
-        baseUrl,
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
+      final response = await dio.get(baseUrl);
 
-      final products = (response.data as List<dynamic>)
-          .map((item) => ProductModel.fromJson(item))
-          .toList();
-
-      return {'success': true, 'data': products};
+      if (response.statusCode == 200) {
+        final List data = response.data;
+        return data.map((p) => ProductModel.fromJson(p)).toList();
+      } else {
+        throw Exception("Erro ao carregar produtos");
+      }
     } on DioException catch (e) {
-      final err = e.response?.data;
-      return {
-        'success': false,
-        'error': err != null
-            ? (err['error'] ?? err['message'] ?? err)
-            : 'Erro ao carregar produtos',
-      };
+      throw Exception(e.response?.data['message'] ?? "Erro de conexão");
     }
   }
 }
