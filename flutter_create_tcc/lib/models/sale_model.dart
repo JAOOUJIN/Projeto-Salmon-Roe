@@ -26,7 +26,7 @@ class SaleModel {
     return SaleModel(
       saleCode: json['cd_venda'] ?? 0,
       totalValue: (json['vl_venda'] ?? 0).toDouble(),
-      date: DateTime.parse(json['dt_emissao']),
+      date: DateTime.parse(json['createdAt']),
       items: (json['itens'] as List<dynamic>? ?? [])
           .map(
             (item) => SaleItem(

@@ -24,10 +24,6 @@ const SaleSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  dt_emissao: {
-    type: Date,
-    default: Date.now,
-  },
   itens: [SaleItemSchema],  
 }, { timestamps: true });
 
