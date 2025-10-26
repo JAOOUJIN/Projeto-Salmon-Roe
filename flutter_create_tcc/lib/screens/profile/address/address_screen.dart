@@ -21,8 +21,6 @@ class _AddressScreenState extends State<AddressScreen> {
     });
   }
 
-  // Navega para a tela de adicionar endereço
-
   void _navigateToAddAddress() async {
     final added = await Navigator.pushNamed(context, '/addAddress');
     if (added == true && mounted) {
@@ -44,8 +42,6 @@ class _AddressScreenState extends State<AddressScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
-
-      // Botão flutuante para adicionar novo endereço
       floatingActionButton: FloatingActionButton(
         elevation: 3,
         backgroundColor: Colors.white,
@@ -53,7 +49,6 @@ class _AddressScreenState extends State<AddressScreen> {
         onPressed: _navigateToAddAddress,
         child: const Icon(Icons.add_rounded, color: Colors.black87, size: 30),
       ),
-
       body: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           if (auth.isLoading) {
@@ -65,7 +60,10 @@ class _AddressScreenState extends State<AddressScreen> {
             return const Center(
               child: Text(
                 "Nenhum endereço cadastrado ainda.",
-                style: TextStyle(color: Colors.black54, fontSize: 16),
+                style: TextStyle(
+                  color: Color.fromARGB(137, 10, 7, 7),
+                  fontSize: 16,
+                ),
               ),
             );
           }
@@ -75,7 +73,6 @@ class _AddressScreenState extends State<AddressScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               children: [
-                // Barra de busca (Decorativo)
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
@@ -91,8 +88,6 @@ class _AddressScreenState extends State<AddressScreen> {
                     ),
                   ),
                 ),
-
-                // Localização atual (DECORATIVO)
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -112,16 +107,14 @@ class _AddressScreenState extends State<AddressScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // Lista de endereços
                 ...List.generate(addresses.length, (index) {
                   final address = addresses[index];
                   final isSelected = selectedIndex == index;
+                  final isDefault = address.id == auth.user?.defaultAddressId;
 
                   return GestureDetector(
                     onTap: () {
                       setState(() => selectedIndex = index);
-
                       final selected = {
                         "street": address.street,
                         "number": address.number,
@@ -131,6 +124,7 @@ class _AddressScreenState extends State<AddressScreen> {
                     child: AddressCard(
                       address: address,
                       isSelected: isSelected,
+                      isDefault: isDefault, 
                     ),
                   );
                 }),

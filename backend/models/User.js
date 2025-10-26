@@ -40,6 +40,11 @@ const UserSchema = new mongoose.Schema({
         trim: true,
     },
     addresses: [addressSchema],
+    defaultAddressId: {  
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+        ref: 'User.addresses',  // Ref aos endereços
+    },
 });
 
 module.exports = mongoose.model('User', UserSchema);

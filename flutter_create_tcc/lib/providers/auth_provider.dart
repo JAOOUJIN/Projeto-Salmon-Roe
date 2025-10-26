@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import '../models/address_model.dart'; 
+import '../models/address_model.dart';
 import '../services/auth_services.dart';
 import '../services/user_services.dart';
 
@@ -332,6 +332,62 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // SET DEFAULT ADDRESS 
+  Future<Map<String, dynamic>> setDefaultAddress({
+    required String addressId,
+  }) async {
+    if (_token == null || _user == null) {
+      return {'success': false, 'error': 'Usuário não autenticado.'};
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _userService.setDefaultAddress(
+        token: _token!,
+        addressId: addressId,
+      );
+
+      _isLoading = false;
+
+      if (result['success'] == true) {
+        final responseData = result['data'] as Map<String, dynamic>?;
+
+        if (responseData != null && responseData['user'] != null) {
+          final userData = responseData['user'] as Map<String, dynamic>;
+
+          _user = _user!.copyWith(
+            defaultAddressId: userData['defaultAddressId'] as String?,
+            addresses: (userData['addresses'] as List<dynamic>?)
+                ?.map((e) => AddressModel.fromJson(e))
+                .toList(),
+          );
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user', jsonEncode(_user!.toJson()));
+
+          notifyListeners();
+          return {
+            'success': true,
+            'data': {'user': userData},
+          };
+        } else {
+          return {'success': false, 'error': 'Resposta do servidor inválida.'};
+        }
+      } else {
+        return {
+          'success': false,
+          'error': result['error'] ?? 'Erro desconhecido.',
+        };
+      }
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return {'success': false, 'error': 'Erro: $e'};
+    }
+  }
+
   // UPDATE ADDRESS - Novo método: Atualiza endereço e sincroniza _user.addresses
   Future<Map<String, dynamic>> updateAddress({
     required String addressId,
@@ -450,16 +506,14 @@ class AuthProvider with ChangeNotifier {
 }
 
 extension UserModelCopyWith on UserModel {
-  UserModel copyWith({
-    List<AddressModel>? addresses,
-  }) {
-    
+  UserModel copyWith({List<AddressModel>? addresses}) {
     final Map<String, dynamic> data =
         jsonDecode(jsonEncode(toJson())) as Map<String, dynamic>;
 
     if (addresses != null) {
-      data['addresses'] =
-          addresses.map((a) => a.toJson()).toList(growable: false);
+      data['addresses'] = addresses
+          .map((a) => a.toJson())
+          .toList(growable: false);
     }
 
     return UserModel.fromJson(data);

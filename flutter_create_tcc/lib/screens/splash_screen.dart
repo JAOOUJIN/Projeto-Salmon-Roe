@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     // Simula uma espera para carregar recursos 
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 5));
 
     final success = await auth.tryAutoLogin();
 

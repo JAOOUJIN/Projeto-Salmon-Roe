@@ -7,7 +7,7 @@ class UserModel {
   final String? name;
   final String? cpf;
   final List<AddressModel>? addresses;
-
+  final String? defaultAddressId; 
   UserModel({
     required this.id,
     required this.email,
@@ -15,6 +15,7 @@ class UserModel {
     this.name,
     this.cpf,
     this.addresses = const [],
+    this.defaultAddressId,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -24,10 +25,12 @@ class UserModel {
       phone: json['phone'] ?? '',
       name: json['name'],
       cpf: json['cpf'],
-      addresses: (json['addresses'] as List<dynamic>?)
+      addresses:
+          (json['addresses'] as List<dynamic>?)
               ?.map((e) => AddressModel.fromJson(e))
               .toList() ??
           [],
+      defaultAddressId: json['defaultAddressId'],
     );
   }
 
@@ -39,10 +42,11 @@ class UserModel {
       'name': name,
       'cpf': cpf,
       'addresses': addresses?.map((e) => e.toJson()).toList(),
+      'defaultAddressId': defaultAddressId,
     };
   }
 
-  // Método copyWith adicionado
+  // Método copyWith 
   UserModel copyWith({
     String? id,
     String? email,
@@ -50,6 +54,7 @@ class UserModel {
     String? name,
     String? cpf,
     List<AddressModel>? addresses,
+    String? defaultAddressId,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -58,9 +63,11 @@ class UserModel {
       name: name ?? this.name,
       cpf: cpf ?? this.cpf,
       addresses: addresses ?? this.addresses,
+      defaultAddressId: defaultAddressId ?? this.defaultAddressId,
     );
   }
 
   @override
-  String toString() => 'User(id: $id, email: $email, phone: $phone, name: $name, cpf: $cpf, addresses: $addresses)';
+  String toString() =>
+      'User(id: $id, email: $email, phone: $phone, name: $name, cpf: $cpf, addresses: $addresses, defaultAddressId: $defaultAddressId)';
 }

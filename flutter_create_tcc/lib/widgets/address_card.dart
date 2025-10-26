@@ -6,11 +6,13 @@ import '../providers/auth_provider.dart';
 class AddressCard extends StatefulWidget {
   final AddressModel address;
   final bool isSelected;
+  final bool isDefault; 
 
   const AddressCard({
     super.key,
     required this.address,
     this.isSelected = false,
+    this.isDefault = false,
   });
 
   @override
@@ -50,7 +52,10 @@ class _AddressCardState extends State<AddressCard> {
                   _buildOption(
                     icon: Icons.star_border_rounded,
                     label: "Definir como principal",
-                    onTap: () => Navigator.pop(context),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _setDefaultAddress();
+                    },
                   ),
                   _buildOption(
                     icon: Icons.edit_rounded,
@@ -97,6 +102,44 @@ class _AddressCardState extends State<AddressCard> {
       ),
       onTap: onTap,
     );
+  }
+
+  Future<void> _setDefaultAddress() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final result = await auth.setDefaultAddress(addressId: widget.address.id);
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      // Fecha o modal primeiro
+      Navigator.of(context).pop();
+
+      // Mostra SnackBar após fechar
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Endereço definido como padrão!'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
+    } else {
+      // Fecha o modal e mostra erro
+      Navigator.of(context).pop();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Erro ao definir padrão'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
   }
 
   Future<void> _editAddress() async {
@@ -165,51 +208,58 @@ class _AddressCardState extends State<AddressCard> {
         border: Border.all(
           color: widget.isSelected
               ? Colors.redAccent
-              : Colors.grey.withAlpha(
-                  (0.2 * 255).toInt(),
-                ), 
+              : Colors.grey.withAlpha((0.2 * 255).toInt()),
           width: widget.isSelected ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12.withAlpha(
-              (0.05 * 255).toInt(),
-            ), 
+            color: Colors.black12.withAlpha((0.05 * 255).toInt()),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: ListTile(
-        leading: Icon(
-          Icons.location_on_rounded,
-          color: widget.isSelected
-              ? Colors.redAccent
-              : Colors.redAccent.withAlpha(
-                  (0.4 * 255).toInt(),
-                ), 
-          size: 28,
-        ),
-        title: Text(
-          '${address.street}, ${address.number}',
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${address.neighborhood} - ${address.city}/${address.state}'),
-            if (address.complement != null && address.complement!.isNotEmpty)
-              Text(address.complement!),
-            Text(
-              'CEP: ${address.zip}',
-              style: const TextStyle(color: Colors.black45, fontSize: 12),
+      child: Stack(
+        children: [
+          ListTile(
+            leading: Icon(
+              Icons.location_on_rounded,
+              color: widget.isSelected
+                  ? Colors.redAccent
+                  : Colors.redAccent.withAlpha((0.4 * 255).toInt()),
+              size: 28,
             ),
-          ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.more_vert_rounded, color: Colors.black54),
-          onPressed: _showOptions,
-        ),
+            title: Text(
+              '${address.street}, ${address.number}',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${address.neighborhood} - ${address.city}/${address.state}',
+                ),
+                if (address.complement != null &&
+                    address.complement!.isNotEmpty)
+                  Text(address.complement!),
+                Text(
+                  'CEP: ${address.zip}',
+                  style: const TextStyle(color: Colors.black45, fontSize: 12),
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.more_vert_rounded, color: Colors.black54),
+              onPressed: _showOptions,
+            ),
+          ),
+          if (widget.isDefault) // Indicador visual
+            Positioned(
+              right: 10,
+              top: 10,
+              child: Icon(Icons.star, color: Colors.amber.shade700, size: 22),
+            ),
+        ],
       ),
     );
   }

@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 
 // Serviços de usuário
+
 class UserServices {
   final Dio dio = Dio();
-  final String baseUrl = "http://10.0.2.2:5000/api/user"; // Mantém /api/user
+  final String baseUrl = "http://10.0.2.2:5000/api/user"; 
 
   // UPDATE USER DATA (nome, CPF) - Removido userId da URL
   Future<Map<String, dynamic>> updateUserData({
@@ -63,7 +64,7 @@ class UserServices {
     }
   }
 
-  // GET ADDRESSES - Novo método
+  // GET ADDRESSES 
   Future<Map<String, dynamic>> getAddresses({required String token}) async {
     try {
       final response = await dio.get(
@@ -83,7 +84,7 @@ class UserServices {
     }
   }
 
-  // ADD ADDRESS - Novo método
+  // ADD ADDRESS 
   Future<Map<String, dynamic>> addAddress({
     required String token,
     required String street,
@@ -96,7 +97,7 @@ class UserServices {
   }) async {
     try {
       final response = await dio.post(
-        '$baseUrl/address',  // URL para adicionar
+        '$baseUrl/address',  
         data: {
           'street': street,
           'number': number,
@@ -121,7 +122,30 @@ class UserServices {
     }
   }
 
-  // UPDATE ADDRESS - Novo método
+  // SET DEFAULT ADDRESS 
+Future<Map<String, dynamic>> setDefaultAddress({
+  required String token,
+  required String addressId,
+}) async {
+  try {
+    final response = await dio.put(
+      '$baseUrl/set-default-address/$addressId',  
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+
+    return {'success': true, 'data': response.data};
+  } on DioException catch (e) {
+    final err = e.response?.data;
+    return {
+      'success': false,
+      'error': err != null
+          ? (err['error'] ?? err['message'] ?? err)
+          : 'Erro desconhecido',
+    };
+  }
+}
+
+  // UPDATE ADDRESS 
   Future<Map<String, dynamic>> updateAddress({
     required String token,
     required String addressId,
@@ -135,7 +159,7 @@ class UserServices {
   }) async {
     try {
       final response = await dio.put(
-        '$baseUrl/address/$addressId',  // URL com :addressId
+        '$baseUrl/address/$addressId',  
         data: {
           if (street != null) 'street': street,
           if (number != null) 'number': number,
@@ -160,14 +184,14 @@ class UserServices {
     }
   }
 
-  // DELETE ADDRESS - Novo método
+  // DELETE ADDRESS 
   Future<Map<String, dynamic>> deleteAddress({
     required String token,
     required String addressId,
   }) async {
     try {
       final response = await dio.delete(
-        '$baseUrl/address/$addressId',  // URL com :addressId
+        '$baseUrl/address/$addressId',  
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 

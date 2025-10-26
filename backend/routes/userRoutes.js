@@ -7,6 +7,7 @@ const {
   updateAddress,
   deleteAddress,
   getAddresses,
+  setDefaultAddress,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -19,5 +20,6 @@ router.put('/update-access', updateAccess);
 router.get('/', getAddresses);
 router.post('/address', addAddress);  
 router.put('/address/:addressId', updateAddress);
+router.put('/set-default-address/:addressId', setDefaultAddress);
 router.delete('/address/:addressId', deleteAddress);
 module.exports = router;

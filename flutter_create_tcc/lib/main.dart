@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/product_provider.dart';
+import 'providers/cart_provider.dart';
+import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login/login_screen.dart';
 import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/menu_client_screen.dart';
+import 'package:flutter_create_tcc/screens/home_screen.dart';
 import 'package:flutter_create_tcc/screens/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
@@ -18,8 +22,8 @@ import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
-import 'package:flutter_create_tcc/models/address_model.dart';
-import 'package:flutter_create_tcc/providers/product_provider.dart';
+import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
+import 'package:flutter_create_tcc/screens/cart/review_order_screen.dart';
 
 
 // Ponto de entrada da aplicação
@@ -29,6 +33,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: const MyApp(),
     ),
@@ -51,6 +56,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/registration': (context) => const RegistrationScreen(),
         '/menuClient': (context) => const MenuClientScreen(),
+        '/homeProducts': (context) => const HomeScreen(),
         '/clientProfile': (context) => const ProfileScreen(),
         '/clientOrders': (context) => const OrdersScreen(),
         '/search': (context) => const SearchScreen(),
@@ -64,6 +70,8 @@ class MyApp extends StatelessWidget {
         '/addresses': (context) => const AddressScreen(),
         '/addAddress': (context) => const AddAddressScreen(),
         '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
+        '/cart': (context) => const CartScreen(),
+        '/reviewOrder': (context) => const ReviewOrderScreen(),
       },
     );
   }

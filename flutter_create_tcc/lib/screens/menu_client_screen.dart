@@ -13,21 +13,11 @@ class MenuClientScreen extends StatefulWidget {
 
 class _MenuClientScreenState extends State<MenuClientScreen> {
   int _selectedIndex = 0;
-  String currentAddress = "Selecione um endereço";
-
-  void _updateAddress(String newAddress) {
-    setState(() {
-      currentAddress = newAddress;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      HomeScreen(
-        currentAddress: currentAddress,
-        onAddressChanged: _updateAddress,
-      ),
+      const HomeScreen(), 
       const SearchScreen(),
       const OrdersScreen(),
       const ProfileScreen(),

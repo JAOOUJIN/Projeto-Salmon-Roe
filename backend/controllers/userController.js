@@ -72,6 +72,23 @@ exports.getAddresses = async (req, res) => {
   }
 };
 
+// Definir endereço padrão
+exports.setDefaultAddress = async (req, res) => {
+  const { addressId } = req.params;
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
+    const addressExists = user.addresses.some(a => a._id.toString() === addressId);
+    if (!addressExists) {
+      return res.status(404).json({ error: 'Endereço não encontrado.' });
+    }
+    user.defaultAddressId = addressId;
+    await user.save();
+    res.json({ message: 'Endereço padrão definido com sucesso!', user });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao definir endereço padrão.' });
+  }
+};
 
 // Adicionar endereço
 exports.addAddress = async (req, res) => {

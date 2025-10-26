@@ -10,12 +10,12 @@ exports.register = async (req, res) => {
   const { email, password, phone, name, cpf } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ 
-      email, 
-      password: hashedPassword, 
-      phone, 
-      name: name || null, 
-      cpf: cpf || null 
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      phone,
+      name: name || null,
+      cpf: cpf || null
     });
     await newUser.save();
     res.status(201).json({ message: 'Usuário registrado com sucesso!' });
@@ -52,6 +52,7 @@ exports.login = async (req, res) => {
           name: user.name || null,
           cpf: user.cpf || null,
           addresses: user.addresses || [],
+          defaultAddressId: user.defaultAddressId || null,
         },
         token,
       },
