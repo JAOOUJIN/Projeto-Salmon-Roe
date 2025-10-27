@@ -24,6 +24,7 @@ class _MenuClientScreenState extends State<MenuClientScreen> {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: IndexedStack(index: _selectedIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

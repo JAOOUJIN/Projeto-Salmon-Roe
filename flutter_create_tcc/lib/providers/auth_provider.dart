@@ -18,7 +18,7 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _user != null && _token != null;
   bool get isLoading => _isLoading;
 
-  // LOGIN (Mantém igual)
+  // LOGIN 
   Future<Map<String, dynamic>> login(String loginId, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -61,7 +61,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // REGISTER (Mantém igual)
+  // REGISTER 
   Future<Map<String, dynamic>> register(
     String email,
     String password,
@@ -78,7 +78,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // LOGOUT (Mantém igual)
+  // LOGOUT 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
@@ -90,7 +90,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // AUTO LOGIN (Mantém igual)
+  // AUTO LOGIN 
   Future<bool> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
 

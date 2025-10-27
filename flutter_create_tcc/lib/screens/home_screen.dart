@@ -23,7 +23,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
-      context.read<ProductProvider>().fetchProducts();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ProductProvider>().fetchProducts();
+      });
       _loadDefaultAddress();
       _initialized = true;
     }
