@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/auth_text_field.dart';
+import '../../widgets/auth/auth_text_field.dart';
 import 'registration_screen.dart';
-import '../../widgets/auth_logo_animated.dart';
+import '../../widgets/auth/auth_logo_animated.dart';
 
 // Tela de Login
 class LoginScreen extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/address_model.dart';
-import '../providers/auth_provider.dart';
+import '../../models/address_model.dart';
+import '../../providers/auth_provider.dart';
 
 class AddressCard extends StatefulWidget {
   final AddressModel address;

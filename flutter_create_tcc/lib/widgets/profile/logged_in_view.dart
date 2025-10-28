@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import 'menu_option_widget.dart';
+import '../../providers/auth_provider.dart';
+import '../menu_option_widget.dart';
 
 // Tela de Visualização do Usuário Logado
 class LoggedInView extends StatelessWidget {

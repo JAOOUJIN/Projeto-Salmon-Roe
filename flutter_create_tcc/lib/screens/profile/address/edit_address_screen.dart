@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/address_model.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../widgets/address_form.dart';
+import '../../../widgets/address/address_form.dart';
 
 class EditAddressScreen extends StatelessWidget {
   final AddressModel address;

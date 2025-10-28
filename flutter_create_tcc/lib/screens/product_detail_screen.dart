@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
+import '../widgets/product/product_image_header.dart';
+import '../widgets/product/product_info_section.dart';
+import '../widgets/product/bottom_action_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -12,8 +15,38 @@ class ProductDetailScreen extends StatefulWidget {
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
+class _ProductDetailScreenState extends State<ProductDetailScreen>
+    with SingleTickerProviderStateMixin {
   int quantity = 1;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,131 +56,47 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Imagem principal
-            Stack(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.network(
-                  product.imageUrl,
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  top: 40,
-                  left: 10,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.8),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    product.description,
-                    style: const TextStyle(color: Colors.black54, fontSize: 15),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    "R\$ ${product.price.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (product.oldPrice > 0)
-                    Text(
-                      "De R\$ ${product.oldPrice.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        decoration: TextDecoration.lineThrough,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  const SizedBox(height: 30),
-
-                  // Seletor de quantidade
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ProductImageHeader(imageUrl: product.imageUrl),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: () {
-                              if (quantity > 1) {
-                                setState(() => quantity--);
-                              }
-                            },
-                          ),
-                          Text(
-                            "$quantity",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
-                            onPressed: () {
-                              setState(() => quantity++);
-                            },
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
+                      ProductInfoSection(product: product),
+                      const SizedBox(height: 30),
+                      BottomActionSection(
+                        quantity: quantity,
+                        price: product.price * quantity,
+                        onAddQuantity: () => setState(() => quantity++),
+                        onRemoveQuantity: () {
+                          if (quantity > 1) setState(() => quantity--);
+                        },
+                        onAddToCart: () {
                           cart.addItem(product, quantity);
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
+                              backgroundColor: Colors.green.shade600,
                               content: Text(
                                 '${product.name} adicionado ao carrinho!',
                               ),
                             ),
                           );
                         },
-                        child: Text(
-                          "Adicionar  •  R\$ ${(product.price * quantity).toStringAsFixed(2)}",      
-                          style: const TextStyle(fontSize: 16),
-                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

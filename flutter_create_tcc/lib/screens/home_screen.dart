@@ -6,7 +6,7 @@ import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/product_card.dart';
+import '../widgets/product_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
