@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const saleRoutes = require('./routes/saleRoutes');
@@ -9,7 +9,7 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const MONGODB_URI = 'mongodb+srv://db_admin:admin123@salmon-roe-cluster.xmbnlaz.mongodb.net/?retryWrites=true&w=majority&appName=Salmon-roe-cluster'; 
+const MONGODB_URI = 'mongodb+srv://db_admin:admin123@salmon-roe-cluster.xmbnlaz.mongodb.net/salmon-roe?retryWrites=true&w=majority&appName=Salmon-roe-cluster';
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Conectado ao MongoDB!'))
   .catch(err => console.error('Erro de conexão ao MongoDB:', err));

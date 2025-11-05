@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
-import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
-import '../../providers/product_provider.dart';
-import '../../providers/cart_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../widgets/product_card.dart';
+import 'package:flutter_create_tcc/providers/product_provider.dart';
+import 'package:flutter_create_tcc/providers/cart_provider.dart';
+import 'package:flutter_create_tcc/providers/auth_provider.dart';
+import '../widgets/home/featured_products_section.dart';
+import '../widgets/home/new_products_section.dart';
+import '../widgets/home/notification_icon.dart';
+import '../widgets/home/floating_cart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -95,74 +97,44 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final featured = provider.featured;
-    final newProducts = provider.newProducts;
-
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF7F8FA), 
         appBar: AppBar(
           backgroundColor: Colors.white,
-          elevation: 0,
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.08),
+          surfaceTintColor: Colors.transparent,
           title: GestureDetector(
             onTap: _openAddressScreen,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
                   child: Text(
                     currentAddress,
                     style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.black87,
+                  size: 22,
+                ),
               ],
             ),
           ),
           centerTitle: true,
-          actions: [
-            Stack(
-              alignment: Alignment.topRight,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.shopping_cart_outlined,
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CartScreen()),
-                    );
-                  },
-                ),
-                if (cartProvider.items.isNotEmpty)
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        cartProvider.items.length.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: NotificationIcon(notificationCount: 3),
             ),
           ],
         ),
@@ -174,32 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Destaques",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 250,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: featured.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, index) =>
-                        ProductCard(product: featured[index]),
-                  ),
-                ),
+                FeaturedProductsSection(products: provider.featured),
                 const SizedBox(height: 20),
-                const Text(
-                  "Lançamentos",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                ...newProducts.map((p) => ProductCard(product: p)),
+                NewProductsSection(products: provider.newProducts),
               ],
             ),
           ),
         ),
+        floatingActionButton: cartProvider.items.isNotEmpty
+            ? const FloatingCartButton()
+            : null,
       ),
     );
   }
