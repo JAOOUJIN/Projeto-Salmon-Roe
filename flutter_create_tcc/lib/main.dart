@@ -23,7 +23,6 @@ import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
 import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
-import 'package:flutter_create_tcc/screens/cart/review_order_screen.dart';
 
 
 // Ponto de entrada da aplicação
@@ -71,7 +70,6 @@ class MyApp extends StatelessWidget {
         '/addAddress': (context) => const AddAddressScreen(),
         '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
         '/cart': (context) => const CartScreen(),
-        '/reviewOrder': (context) => const ReviewOrderScreen(),
       },
     );
   }
