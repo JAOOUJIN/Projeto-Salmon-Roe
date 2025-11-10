@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../menu_option_widget.dart';
+import '../profile/profile_menu_item.dart';
 
-// Tela de Visualização do Usuário Logado
+/// Tela do perfil para usuário logado
 class LoggedInView extends StatelessWidget {
   const LoggedInView({super.key});
 
@@ -12,23 +12,37 @@ class LoggedInView extends StatelessWidget {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user?.toJson();
 
+    const accentColor = Colors.redAccent;
+    const backgroundColor = Color(0xFFF9F9F9);
+
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: backgroundColor,
       body: SafeArea(
-        top: false,
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header com avatar + nome/email
+              // Header com avatar e dados do usuário
               Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 30,
-                      backgroundColor: const Color.fromARGB(255, 238, 130, 30),
+                      radius: 32,
+                      backgroundColor: accentColor.withValues(alpha: 0.15),
                       child: const Text("🍣", style: TextStyle(fontSize: 28)),
                     ),
                     const SizedBox(width: 16),
@@ -39,10 +53,11 @@ class LoggedInView extends StatelessWidget {
                           user?['name'] ?? user?['email'] ?? 'Usuário',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 17,
+                            color: Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 4),
                         const Text(
                           "Cliente Salmon Roe",
                           style: TextStyle(color: Colors.grey, fontSize: 14),
@@ -52,40 +67,83 @@ class LoggedInView extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+
+              const SizedBox(height: 16),
 
               // Opções do menu
-              MenuOption(
-                icon: Icons.notifications,
+              ProfileMenuItem(
+                icon: Icons.notifications_none_rounded,
                 title: "Notificações",
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
               ),
-              MenuOption(
-                icon: Icons.person,
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.person_outline_rounded,
                 title: "Dados da conta",
                 onTap: () => Navigator.pushNamed(context, '/accountData'),
               ),
-              MenuOption(
-                icon: Icons.credit_card,
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.credit_card_outlined,
                 title: "Pagamentos",
                 onTap: () => Navigator.pushNamed(context, '/payments'),
               ),
-              MenuOption(
-                icon: Icons.history,
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.history_rounded,
                 title: "Histórico de Pedidos",
                 onTap: () => Navigator.pushNamed(context, '/orderHistory'),
               ),
-              MenuOption(
-                icon: Icons.location_on,
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.location_on_outlined,
                 title: "Endereços",
                 onTap: () => Navigator.pushNamed(context, '/addresses'),
               ),
-              MenuOption(
-                icon: Icons.settings,
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.settings_outlined,
                 title: "Configurações",
                 onTap: () => Navigator.pushNamed(context, '/configuration'),
               ),
-              const SizedBox(height: 20),
+
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFE0E0E0),
+              ),
+
+              const SizedBox(height: 24),
 
               // Botão de logout
               Padding(
@@ -98,16 +156,22 @@ class LoggedInView extends StatelessWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+                    backgroundColor: accentColor,
                     foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 52),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    elevation: 0,
                   ),
-                  child: const Text("Sair da conta"),
+                  child: const Text(
+                    "Sair da conta",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  ),
                 ),
               ),
+
+              const SizedBox(height: 24),
             ],
           ),
         ),

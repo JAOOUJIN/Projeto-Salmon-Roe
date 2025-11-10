@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/product_model.dart';
-import '../providers/cart_provider.dart';
-import '../widgets/product/product_image_header.dart';
-import '../widgets/product/product_info_section.dart';
-import '../widgets/product/bottom_action_section.dart';
+import '../../models/product_model.dart';
+import '../../providers/cart_provider.dart';
+import '../../widgets/product/product_image_header.dart';
+import '../../widgets/product/product_info_section.dart';
+import '../../widgets/product/bottom_action_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;

@@ -15,9 +15,11 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isLoading = false;
 
@@ -71,7 +73,9 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Informações de Acesso'),
         centerTitle: true,
       ),
@@ -200,21 +204,24 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
               ),
               const SizedBox(height: 40),
 
-              // BOTÃO SALVAR
+              // BOTÃO SALVAR 
               SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: Ink(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFFB74D), Color(0xFFF57C00)],
+                      colors: [
+                        Color.fromARGB(255, 236, 93, 90),
+                        Color.fromARGB(255, 236, 53, 50),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withAlpha((0.3 * 255).toInt()),
+                        color: Colors.redAccent.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),

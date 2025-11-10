@@ -5,10 +5,10 @@ import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/providers/product_provider.dart';
 import 'package:flutter_create_tcc/providers/cart_provider.dart';
 import 'package:flutter_create_tcc/providers/auth_provider.dart';
-import '../widgets/home/featured_products_section.dart';
-import '../widgets/home/new_products_section.dart';
-import '../widgets/home/notification_icon.dart';
-import '../widgets/home/floating_cart.dart';
+import '../../widgets/home/featured_products_section.dart';
+import '../../widgets/home/new_products_section.dart';
+import '../../widgets/home/notification_icon.dart';
+import '../../widgets/home/floating_cart.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

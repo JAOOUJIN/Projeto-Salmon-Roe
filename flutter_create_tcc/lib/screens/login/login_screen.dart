@@ -52,7 +52,11 @@ class _LoginScreenState extends State<LoginScreen> {
           const SnackBar(content: Text("Login realizado com sucesso!")),
         );
 
-        Navigator.pushReplacementNamed(context, '/menuClient');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/menuClient',
+          (route) => false,
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['error'] ?? "Erro no login.")),

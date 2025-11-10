@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AddToCartButton extends StatelessWidget {
   final double price;
   final VoidCallback onPressed;
+
   const AddToCartButton({
     super.key,
     required this.price,
@@ -16,27 +17,29 @@ class AddToCartButton extends StatelessWidget {
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(50),
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(255, 240, 123, 45), 
-            Color.fromARGB(255, 243, 139, 91), 
+            Color(
+              0xFFE53935,
+            ), 
+            Color(0xFFEF5350), 
           ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
+            color: Colors.redAccent.withValues(alpha: 0.4),
             blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(50),
         onTap: onPressed,
-        splashColor: Colors.white.withValues(alpha: 0.2),
+        splashColor: Colors.white.withValues(alpha: 0.15),
         child: Center(
           child: Text(
             'Adicionar • R\$ ${price.toStringAsFixed(2)}',
@@ -44,6 +47,7 @@ class AddToCartButton extends StatelessWidget {
               color: Colors.white,
               fontSize: 17,
               fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
             ),
           ),
         ),

@@ -91,7 +91,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Informações Pessoais'),
         centerTitle: true,
       ),
@@ -101,7 +103,6 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           key: _formKey,
           child: Column(
             children: [
-              
               // NOME
               TextFormField(
                 controller: _nameController,
@@ -156,14 +157,17 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 child: Ink(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFFB74D), Color(0xFFF57C00)],
+                      colors: [
+                        Color.fromARGB(255, 236, 93, 90),
+                        Color.fromARGB(255, 236, 53, 50),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withAlpha((0.3 * 255).toInt()),
+                        color: Colors.redAccent.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
