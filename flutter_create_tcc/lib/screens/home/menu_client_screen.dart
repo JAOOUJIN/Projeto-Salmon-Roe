@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
-import 'package:flutter_create_tcc/screens/search_screen.dart';
+import 'package:flutter_create_tcc/screens/home/search_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
 
 class MenuClientScreen extends StatefulWidget {

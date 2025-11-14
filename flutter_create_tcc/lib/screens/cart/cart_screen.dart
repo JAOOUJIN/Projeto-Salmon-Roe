@@ -52,6 +52,21 @@ class _CartScreenState extends State<CartScreen>
 
   Future<void> _openConfirmAddressScreen() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    // Verificação de login
+    if (!auth.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Faça login para continuar a compra."),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      // Redireciona para o perfil (que mostra LoggedOutView)
+      Navigator.pushNamed(context, '/clientProfile');
+      return;
+    }
+
+    // Se logado, continua o fluxo normalmente
     final defaultAddress = auth.user?.addresses?.firstWhere(
       (addr) => addr.id == auth.user?.defaultAddressId,
       orElse: () => AddressModel(

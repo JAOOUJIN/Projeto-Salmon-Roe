@@ -10,7 +10,7 @@ import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/home/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
 import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
-import 'package:flutter_create_tcc/screens/search_screen.dart';
+import 'package:flutter_create_tcc/screens/home/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/payments_screen.dart';

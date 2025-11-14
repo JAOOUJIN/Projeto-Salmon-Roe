@@ -67,6 +67,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openAddressScreen() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    // Verificação de login
+    if (!auth.isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Faça login para adicionar ou verificar endereços."),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      // Redireciona para o perfil (que mostra LoggedOutView)
+      Navigator.pushNamed(context, '/clientProfile');
+      return;
+    }
+
+    // Se logado abre o modal normalmente
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -99,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA), 
+        backgroundColor: const Color(0xFFF7F8FA),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 4,
