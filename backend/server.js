@@ -14,7 +14,12 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('Conectado ao MongoDB!'))
   .catch(err => console.error('Erro de conexão ao MongoDB:', err));
 
-app.use(cors());
+// cabeçalho, métodos e origens permitidos
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+}));
 app.use(express.json());
 
 // Rotas

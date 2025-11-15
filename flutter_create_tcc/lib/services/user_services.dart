@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import '../utils/config.dart';
 
 // Serviços de usuário
 
 class UserServices {
   final Dio dio = Dio();
-  final String baseUrl = "http://10.0.2.2:5000/api/user"; 
+  final String baseUrl = "${Config.baseUrl}/user"; 
 
   // UPDATE USER DATA (nome, CPF) - Removido userId da URL
   Future<Map<String, dynamic>> updateUserData({

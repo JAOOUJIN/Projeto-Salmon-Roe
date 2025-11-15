@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import '../utils/config.dart';
 import '../models/sale_model.dart';
 
 class SaleServices {
   final Dio dio = Dio();
-  final String baseUrl = "http://10.0.2.2:5000/api/sale";
+  final String baseUrl = "${Config.baseUrl}/sale";
 
   // Criar nova venda
   Future<Map<String, dynamic>> createSale({

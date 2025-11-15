@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import '../utils/config.dart';
 
 // Serviços de autenticação
 class AuthServices {
   final Dio dio = Dio();
-  final String baseUrl = "http://10.0.2.2:5000/api/auth";
+  final String baseUrl = "${Config.baseUrl}/auth";
 
   // REGISTER
   Future<Map<String, dynamic>> register(
