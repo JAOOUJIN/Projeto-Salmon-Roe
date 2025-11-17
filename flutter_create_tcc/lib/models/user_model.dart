@@ -1,3 +1,6 @@
+// Comente aqui explicando a funcionalidade do arquivo
+// Este arquivo define o modelo UserModel, que representa um usuário com atributos como ID, email, telefone, nome, CPF, endereços e endereço padrão.
+
 import 'package:flutter_create_tcc/models/address_model.dart';
 
 class UserModel {

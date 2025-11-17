@@ -1,3 +1,6 @@
+// Comente aqui explicando a funcionalidade do arquivo
+// Este arquivo define o modelo AddressModel, que representa um endereço com atributos como rua, número, cidade, estado, CEP, bairro e complemento.
+
 class AddressModel {
   final String id;
   final String street;

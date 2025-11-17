@@ -1,3 +1,6 @@
+// Comente aqui explicando a funcionalidade do arquivo
+// Este arquivo define o modelo SaleModel, que representa uma venda com atributos como código da venda, valor total, data e itens vendidos.
+
 class SaleItem {
   final String productId;
   final int quantity;

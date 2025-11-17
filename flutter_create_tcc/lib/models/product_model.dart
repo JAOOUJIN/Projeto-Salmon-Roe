@@ -1,3 +1,6 @@
+// Comente aqui explicando a funcionalidade do arquivo
+// Este arquivo define o modelo ProductModel, que representa um produto com atributos como nome, descrição, URL da imagem, preço, preço antigo, destaque e novidade.
+
 class ProductModel {
   final String id;
   final String name;

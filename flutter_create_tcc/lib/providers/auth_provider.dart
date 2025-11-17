@@ -1,3 +1,7 @@
+// AuthProvider: Gerencia o estado de autenticação e dados do usuário (login, logout, registro, auto-login, e CRUD de informações/endereços)
+// Utiliza ChangeNotifier para notificar a interface de usuário (UI) sobre as mudanças de estado
+// Armazena token e dados do usuário localmente (SharedPreferences) para persistência
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,19 +13,22 @@ import '../services/user_services.dart';
 class AuthProvider with ChangeNotifier {
   final AuthServices _authService = AuthServices();
   final UserServices _userService = UserServices();
+  // Dados de estado da aplicação (usuário, token de autenticação e indicador de carregamento)
   UserModel? _user;
   String? _token;
   bool _isLoading = false;
 
+  // Getters públicos para acessar o estado
   UserModel? get user => _user;
   String? get token => _token;
+  // Lógica para verificar se o usuário está autenticado
   bool get isAuthenticated => _user != null && _token != null;
   bool get isLoading => _isLoading;
 
-  // LOGIN 
+  // LOGIN
   Future<Map<String, dynamic>> login(String loginId, String password) async {
     _isLoading = true;
-    notifyListeners();
+    notifyListeners(); // 1. Inicia carregamento e notifica UI
 
     final result = await _authService.login(loginId, password);
 
@@ -40,16 +47,18 @@ class AuthProvider with ChangeNotifier {
         if (userData != null && _token != null) {
           _user = UserModel.fromJson(userData);
 
+          // 2. Persiste o token e os dados do usuário no armazenamento local
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', _token!);
           await prefs.setString('user', jsonEncode(_user!.toJson()));
 
-          notifyListeners();
+          notifyListeners(); // 3. Notifica a UI sobre a autenticação bem-sucedida
           return {
             'success': true,
             'data': {'user': userData, 'token': _token},
           };
         } else {
+          // Limpa estado se os dados de usuário estiverem incompletos, mesmo com 'success' do serviço
           _user = null;
           _token = null;
           return {'success': false, 'error': 'Dados de usuário incompletos.'};
@@ -57,57 +66,63 @@ class AuthProvider with ChangeNotifier {
       }
     }
 
-    notifyListeners();
+    notifyListeners(); // Notifica UI para encerrar o estado de carregamento em caso de falha
     return result;
   }
 
-  // REGISTER 
+  // REGISTER
   Future<Map<String, dynamic>> register(
     String email,
     String password,
     String phone,
   ) async {
     _isLoading = true;
-    notifyListeners();
+    notifyListeners(); // 1. Inicia carregamento e notifica UI
 
     final result = await _authService.register(email, password, phone);
 
     _isLoading = false;
-    notifyListeners();
+    notifyListeners(); // 2. Finaliza carregamento e notifica UI
 
-    return result;
+    return result; // Retorna o resultado da operação (sucesso/erro)
   }
 
-  // LOGOUT 
+  // LOGOUT
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
+    // 1. Remove o token e os dados do usuário do armazenamento local
     await prefs.remove('token');
     await prefs.remove('user');
 
+    // 2. Limpa o estado local.
     _token = null;
     _user = null;
 
-    notifyListeners();
+    notifyListeners(); // 3. Notifica a UI sobre o logout
   }
 
-  // AUTO LOGIN 
+  // AUTO LOGIN
   Future<bool> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
 
     final storedToken = prefs.getString('token');
     final storedUser = prefs.getString('user');
 
+    // 1. Verifica se os dados necessários para o auto-login existem localmente
     if (storedToken == null || storedUser == null) {
       return false;
     }
 
     try {
-      final userData = jsonDecode(storedUser);
+      final userData = jsonDecode(
+        storedUser,
+      ); // 2. Decodifica os dados armazenados.
       _token = storedToken;
-      _user = UserModel.fromJson(userData);
+      _user = UserModel.fromJson(userData); // 3. Reconstrói o objeto UserModel
       notifyListeners();
       return true;
     } catch (e) {
+      // Em caso de erro na decodificação (dados corrompidos), efetua logout forçado
       await logout();
       return false;
     }
@@ -118,6 +133,7 @@ class AuthProvider with ChangeNotifier {
     String? name,
     String? cpf,
   }) async {
+    // 1. Garante que há um usuário autenticado antes de prosseguir
     if (_token == null || _user == null) {
       return {'success': false, 'error': 'Usuário não autenticado.'};
     }
@@ -127,7 +143,8 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final result = await _userService.updateUserData(
-        token: _token!,
+        token:
+            _token!, // 2. Envia o token para o serviço para identificar o usuário no backend
         name: name,
         cpf: cpf,
       );
@@ -141,10 +158,15 @@ class AuthProvider with ChangeNotifier {
 
         if (data != null && data['user'] != null) {
           final updatedUser = data['user'] as Map<String, dynamic>;
-          _user = UserModel.fromJson(updatedUser);
+          _user = UserModel.fromJson(
+            updatedUser,
+          ); // 3. Atualiza o estado local do usuário com os novos dados
 
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user', jsonEncode(_user!.toJson()));
+          await prefs.setString(
+            'user',
+            jsonEncode(_user!.toJson()),
+          ); // 4. Persiste a atualização localmente.
 
           notifyListeners();
           return {
@@ -173,6 +195,7 @@ class AuthProvider with ChangeNotifier {
     String? currentPassword,
     String? newPassword,
   }) async {
+    // Lógica similar a updateUserData: validação, início/fim de carregamento, chamada ao serviço e atualização do estado
     if (_token == null || _user == null) {
       return {'success': false, 'error': 'Usuário não autenticado.'};
     }
@@ -241,12 +264,16 @@ class AuthProvider with ChangeNotifier {
         final responseData = result['data'] as Map<String, dynamic>?;
         if (responseData != null && responseData['addresses'] != null) {
           final addresses = responseData['addresses'] as List<dynamic>;
+          // 1. Atualiza a lista de endereços no objeto _user local, mantendo as outras propriedades
           _user = _user!.copyWith(
             addresses: addresses.map((e) => AddressModel.fromJson(e)).toList(),
           );
 
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user', jsonEncode(_user!.toJson()));
+          await prefs.setString(
+            'user',
+            jsonEncode(_user!.toJson()),
+          ); // 2. Persiste o novo estado do usuário
 
           notifyListeners();
           return {
@@ -304,6 +331,7 @@ class AuthProvider with ChangeNotifier {
         final responseData = result['data'] as Map<String, dynamic>?;
         if (responseData != null && responseData['addresses'] != null) {
           final addresses = responseData['addresses'] as List<dynamic>;
+          // 1. O backend retorna a lista completa de endereços após a adição; atualiza o estado local
           _user = _user!.copyWith(
             addresses: addresses.map((e) => AddressModel.fromJson(e)).toList(),
           );
@@ -332,7 +360,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // SET DEFAULT ADDRESS 
+  // SET DEFAULT ADDRESS
   Future<Map<String, dynamic>> setDefaultAddress({
     required String addressId,
   }) async {
@@ -357,6 +385,7 @@ class AuthProvider with ChangeNotifier {
         if (responseData != null && responseData['user'] != null) {
           final userData = responseData['user'] as Map<String, dynamic>;
 
+          // 1. Atualiza o defaultAddressId e a lista de endereços (se fornecida) no estado local
           _user = _user!.copyWith(
             defaultAddressId: userData['defaultAddressId'] as String?,
             addresses: (userData['addresses'] as List<dynamic>?)
@@ -399,6 +428,7 @@ class AuthProvider with ChangeNotifier {
     String? neighborhood,
     String? complement,
   }) async {
+    // Lógica de atualização de endereço: validação, chamada ao serviço e sincronização da lista de endereços do usuário
     if (_token == null || _user == null) {
       return {'success': false, 'error': 'Usuário não autenticado.'};
     }
@@ -457,6 +487,7 @@ class AuthProvider with ChangeNotifier {
   Future<Map<String, dynamic>> deleteAddress({
     required String addressId,
   }) async {
+    // Lógica de exclusão de endereço: validação, chamada ao serviço e sincronização da lista de endereços do usuário
     if (_token == null || _user == null) {
       return {'success': false, 'error': 'Usuário não autenticado.'};
     }
@@ -476,6 +507,7 @@ class AuthProvider with ChangeNotifier {
         final responseData = result['data'] as Map<String, dynamic>?;
         if (responseData != null && responseData['addresses'] != null) {
           final addresses = responseData['addresses'] as List<dynamic>;
+          // Atualiza a lista de endereços no objeto _user com a lista retornada pelo servidor
           _user = _user!.copyWith(
             addresses: addresses.map((e) => AddressModel.fromJson(e)).toList(),
           );
@@ -505,17 +537,26 @@ class AuthProvider with ChangeNotifier {
   }
 }
 
+// Extensão para adicionar o método copyWith no UserModel, facilitando a atualização de listas imutáveis
 extension UserModelCopyWith on UserModel {
-  UserModel copyWith({List<AddressModel>? addresses}) {
+  UserModel copyWith({
+    List<AddressModel>? addresses,
+    String? defaultAddressId,
+  }) {
+    // 1. Cria uma cópia profunda (Deep Copy) do objeto atual através de serialização/desserialização JSON.
     final Map<String, dynamic> data =
         jsonDecode(jsonEncode(toJson())) as Map<String, dynamic>;
 
+    // 2. Aplica as alterações se o novo valor for fornecido.
     if (addresses != null) {
       data['addresses'] = addresses
           .map((a) => a.toJson())
           .toList(growable: false);
     }
+    if (defaultAddressId != null) {
+      data['defaultAddressId'] = defaultAddressId;
+    }
 
-    return UserModel.fromJson(data);
+    return UserModel.fromJson(data); // 3. Cria um novo objeto com os dados atualizados.
   }
 }
