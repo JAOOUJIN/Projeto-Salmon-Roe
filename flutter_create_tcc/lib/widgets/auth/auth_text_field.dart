@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Widget customizado para campos de texto (Login e Registro),
 class AuthTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -25,19 +24,40 @@ class AuthTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      cursorColor: const Color(0xFFFFA07A),
-      style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 14),
+      cursorColor: const Color(0xFFFF7043), 
+      style: const TextStyle(color: Colors.white, fontSize: 14), 
+
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.white70),
+
+        //FUNDO SÓLIDO
         filled: true,
-        fillColor: Colors.white10,
-        labelStyle: const TextStyle(color: Colors.white60),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
-          borderSide: BorderSide.none,
+        fillColor: const Color(0xFF252525),
+
+        labelStyle: const TextStyle(color: Colors.white60, fontSize: 13),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFFF7043), width: 1.5),
+        ),
+
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
+        ),
+
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
       ),
+
       validator: validator,
     );
   }
