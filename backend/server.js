@@ -9,7 +9,8 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const MONGODB_URI = 'mongodb+srv://db_admin:admin123@salmon-roe-cluster.xmbnlaz.mongodb.net/salmon-roe?retryWrites=true&w=majority&appName=Salmon-roe-cluster';
+//const MONGODB_URI = 'mongodb+srv://db_admin:admin123@salmon-roe-cluster.xmbnlaz.mongodb.net/salmon-roe?retryWrites=true&w=majority&appName=Salmon-roe-cluster';
+const MONGODB_URI = process.env.MONGODB_URI;
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('Conectado ao MongoDB!'))
   .catch(err => console.error('Erro de conexão ao MongoDB:', err));
