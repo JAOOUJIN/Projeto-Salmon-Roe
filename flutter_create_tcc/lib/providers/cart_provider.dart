@@ -1,3 +1,8 @@
+// CartProvider gerencia o estado do carrinho de compras.
+// Ele permite adicionar, remover, atualizar itens, calcular o valor total,
+// persistir o carrinho localmente usando SharedPreferences e criar vendas no backend.
+// Utiliza ChangeNotifier para notificar widgets sobre mudanças no estado do carrinho.
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,22 +13,25 @@ import '../services/sale_services.dart';
 class CartProvider with ChangeNotifier {
   final SaleServices _saleService = SaleServices();
 
+  // Lista de itens do carrinho, cada item é um mapa com produto e quantidade
   final List<Map<String, dynamic>> _items = [];
   bool _isLoading = false;
 
+  // Retorna uma lista imutável dos itens do carrinho
   List<Map<String, dynamic>> get items => List.unmodifiable(_items);
   bool get isLoading => _isLoading;
 
+  // Calcula o preço total do carrinho
   double get totalPrice => _items.fold(
     0,
     (sum, item) => sum + (item['product'].price * item['quantity']),
   );
 
   CartProvider() {
-    loadCart(); 
+    loadCart(); // Carrega o carrinho salvo ao inicializar o provider
   }
 
-  // Carrega o carrinho salvo do SharedPreferences
+  /// Carrega o carrinho salvo do SharedPreferences
   Future<void> loadCart() async {
     final prefs = await SharedPreferences.getInstance();
     final cartData = prefs.getString('cart_items');
@@ -40,11 +48,11 @@ class CartProvider with ChangeNotifier {
           };
         }).toList(),
       );
-      notifyListeners();
+      notifyListeners(); // Notifica listeners após carregar os itens
     }
   }
 
-  // Salva o carrinho no SharedPreferences
+  /// Salva o carrinho no SharedPreferences
   Future<void> _saveCart() async {
     final prefs = await SharedPreferences.getInstance();
     final data = _items
@@ -58,7 +66,7 @@ class CartProvider with ChangeNotifier {
     await prefs.setString('cart_items', jsonEncode(data));
   }
 
-  // Adiciona produto ao carrinho
+  /// Adiciona um produto ao carrinho (incrementa quantidade se já existir)
   void addToCart(ProductModel product) {
     final index = _items.indexWhere((item) => item['product'].id == product.id);
 
@@ -72,7 +80,7 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Adiciona quantidade específica
+  /// Adiciona uma quantidade específica de um produto ao carrinho
   void addItem(ProductModel product, int quantity) {
     final index = _items.indexWhere((item) => item['product'].id == product.id);
 
@@ -86,14 +94,14 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Remove produto do carrinho
+  /// Remove um produto do carrinho
   void removeFromCart(ProductModel product) {
     _items.removeWhere((item) => item['product'].id == product.id);
     _saveCart();
     notifyListeners();
   }
 
-  // Atualiza quantidade de um item
+  /// Atualiza a quantidade de um produto no carrinho
   void updateQuantity(ProductModel product, int quantity) {
     final index = _items.indexWhere((item) => item['product'].id == product.id);
     if (index >= 0 && quantity > 0) {
@@ -103,7 +111,7 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  // Esvazia o carrinho
+  /// Esvazia o carrinho e remove do SharedPreferences
   void clearCart() async {
     _items.clear();
     final prefs = await SharedPreferences.getInstance();
@@ -111,7 +119,8 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Cria uma venda no backend
+  /// Cria uma venda no backend usando os itens do carrinho
+  /// Retorna um mapa com sucesso ou erro
   Future<Map<String, dynamic>> createSale(String token, int saleCode) async {
     if (_items.isEmpty) {
       return {'success': false, 'error': 'Carrinho vazio.'};
@@ -121,6 +130,7 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      // Converte os itens do carrinho para SaleItem para enviar ao backend
       final saleItems = _items
           .map(
             (item) => SaleItem(
@@ -137,7 +147,7 @@ class CartProvider with ChangeNotifier {
       );
 
       if (result['success'] == true) {
-        clearCart();
+        clearCart(); // Limpa o carrinho após venda bem-sucedida
       }
 
       _isLoading = false;
