@@ -26,7 +26,7 @@ const SaleSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'], 
+    enum: ['pending', 'confirmed', 'shipped','on_the_way', 'delivered', 'cancelled'], 
     default: 'pending', 
     required: true,
   },
