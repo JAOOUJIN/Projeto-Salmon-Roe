@@ -24,12 +24,14 @@ class SaleModel {
   final int saleCode;
   final double totalValue;
   final DateTime date;
+  final String status;
   final List<SaleItem> items; // Lista de todos os itens vendidos.
 
   SaleModel({
     required this.saleCode,
     required this.totalValue,
     required this.date,
+    required this.status,
     required this.items,
   });
 
@@ -42,6 +44,7 @@ class SaleModel {
       totalValue: (json['vl_venda'] ?? 0).toDouble(),
       // Converte a data de texto (string) para o formato de data (DateTime)
       date: DateTime.parse(json['createdAt']),
+      status: json['status'] ?? 'pending', // Novo: pega o status, padrão 'pending'
       // Mapeia a lista de itens:
       // 1. Tenta obter a lista 'itens' e, se for nula, usa uma lista vazia.
       items: (json['itens'] as List<dynamic>? ?? [])
