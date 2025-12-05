@@ -37,13 +37,16 @@ class SaleModel {
 
   // Constrói um objeto SaleModel a partir dos dados (Map/JSON) recebidos do servidor
   factory SaleModel.fromJson(Map<String, dynamic> json) {
+    DateTime utcDate = DateTime.parse(json['createdAt']);
+    DateTime brazilDate = utcDate.subtract(const Duration(hours: 3));
+    
     return SaleModel(
       saleCode:
           json['cd_venda'] ?? 0, // Pega o código da venda. Se for nulo, usa 0.
       // Pega o valor total. Se for nulo, usa 0. Converte para número decimal (double)
       totalValue: (json['vl_venda'] ?? 0).toDouble(),
       // Converte a data de texto (string) para o formato de data (DateTime)
-      date: DateTime.parse(json['createdAt']),
+      date: brazilDate,
       status: json['status'] ?? 'pending', // Novo: pega o status, padrão 'pending'
       // Mapeia a lista de itens:
       // 1. Tenta obter a lista 'itens' e, se for nula, usa uma lista vazia.
