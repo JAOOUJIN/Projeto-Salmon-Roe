@@ -51,7 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Login realizado com sucesso!")),
+          const SnackBar(
+            content: Text("Login realizado com sucesso!"),
+            duration: Duration(milliseconds: 500),
+          ),
         );
 
         Navigator.pushNamedAndRemoveUntil(

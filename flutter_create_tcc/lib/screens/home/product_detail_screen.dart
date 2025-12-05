@@ -83,6 +83,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
+                              duration: const Duration(milliseconds: 500),
                               backgroundColor: Colors.green.shade600,
                               content: Text(
                                 '${product.name} adicionado ao carrinho!',

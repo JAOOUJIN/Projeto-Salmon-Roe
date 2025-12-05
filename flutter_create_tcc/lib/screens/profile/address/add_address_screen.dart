@@ -45,6 +45,7 @@ class AddAddressScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Endereço adicionado com sucesso!'),
+                    duration: Duration(milliseconds: 500),
                   ),
                 );
                 Navigator.of(context).pop(true);
