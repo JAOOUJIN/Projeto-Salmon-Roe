@@ -26,11 +26,15 @@ const SaleSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipped','on_the_way', 'delivered', 'cancelled'], 
-    default: 'pending', 
+    enum: ['pending', 'confirmed', 'shipped', 'on_the_way', 'delivered', 'cancelled'],
+    default: 'pending',
     required: true,
   },
   itens: [SaleItemSchema],
-}, { timestamps: true });
+}, {
+  timestamps: {
+    currentTime: () => new Date(Date.now() - 3 * 60 * 60 * 1000) 
+  }
+});
 
 module.exports = mongoose.model('Sale', SaleSchema);
