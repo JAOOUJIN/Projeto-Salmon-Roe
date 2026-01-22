@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/address_model.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/address_provider.dart';
 import '../../../widgets/address/address_form.dart';
 
 class EditAddressScreen extends StatelessWidget {
@@ -11,7 +12,10 @@ class EditAddressScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
@@ -38,18 +42,19 @@ class EditAddressScreen extends StatelessWidget {
             'complement': address.complement,
           },
           onSubmit: (data) async {
-            final result = await auth.updateAddress(
-              addressId: address.id,
-              street: data['street']!,
-              number: data['number']!,
-              city: data['city']!,
-              state: data['state']!,
-              zip: data['cep']!,
-              neighborhood: data['neighborhood']!,
-              complement: data['complement'],
-            );
+            try {
+              await addressProvider.updateAddress(
+                token: context.read<AuthProvider>().token!,
+                addressId: address.id,
+                street: data['street']!,
+                number: data['number']!,
+                city: data['city']!,
+                state: data['state']!,
+                zip: data['cep']!,
+                neighborhood: data['neighborhood']!,
+                complement: data['complement'],
+              );
 
-            if (result['success']) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -58,14 +63,10 @@ class EditAddressScreen extends StatelessWidget {
                 );
                 Navigator.of(context).pop(true);
               }
-            } else {
+            } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      result['error'] ?? 'Erro ao atualizar endereço.',
-                    ),
-                  ),
+                  const SnackBar(content: Text('Erro ao atualizar endereço.')),
                 );
               }
             }

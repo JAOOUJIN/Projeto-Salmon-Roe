@@ -37,7 +37,7 @@ class AddressModel {
       state: json['state'] ?? '',
       neighborhood: json['neighborhood'] ?? '',
       zip: json['zip'] ?? '',
-      complement: json['complement'] ?? '',
+      complement: json['complement'],
     );
   }
 

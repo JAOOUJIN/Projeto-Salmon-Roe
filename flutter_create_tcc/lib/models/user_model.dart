@@ -12,7 +12,7 @@ class UserModel {
   final String? phone; // Campos opcionais, podem ser nulos
   final String? name;
   final String? cpf;
-  final List<AddressModel>? addresses; // Lista de sub-modelos (endereços)
+  final List<AddressModel> addresses; // Lista de sub-modelos (endereços)
   final String? defaultAddressId; // ID do endereço marcado como padrão
 
   // Construtor principal. Define valores padrão seguros para listas (endereços)
@@ -57,7 +57,7 @@ class UserModel {
       'name': name,
       'cpf': cpf,
       // Converte a lista de AddressModel de volta para uma lista de Maps (JSON)
-      'addresses': addresses?.map((e) => e.toJson()).toList(),
+      'addresses': addresses.map((e) => e.toJson()).toList(),
       'defaultAddressId': defaultAddressId,
     };
   }

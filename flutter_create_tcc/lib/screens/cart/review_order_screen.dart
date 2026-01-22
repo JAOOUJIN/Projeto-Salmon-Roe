@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../models/address_model.dart';
 import '../../widgets/cart/payment_section.dart';
 import '../../widgets/cart/order_summary_section.dart';
 import '../../widgets/cart/order_review_modal.dart';
 
 class ReviewOrderScreen extends StatefulWidget {
-  final String address;
+  final AddressModel address;
   final String delivery;
 
   const ReviewOrderScreen({
@@ -33,7 +34,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return OrderReviewModal(
-          address: widget.address,
+          address:
+              "${widget.address.street}, ${widget.address.number}", 
           delivery: widget.delivery,
           payment: selectedPayment,
           cartProvider: cartProvider,

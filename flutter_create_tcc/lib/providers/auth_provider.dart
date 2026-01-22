@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import '../models/address_model.dart';
+//import '../models/address_model.dart';
 import '../services/auth_services.dart';
 import '../services/user_services.dart';
 
@@ -246,6 +246,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /*
   // GET ADDRESSES - Novo método: Lista endereços e atualiza _user.addresses
   Future<Map<String, dynamic>> getAddresses() async {
     if (_token == null || _user == null) {
@@ -559,4 +560,5 @@ extension UserModelCopyWith on UserModel {
 
     return UserModel.fromJson(data); // 3. Cria um novo objeto com os dados atualizados.
   }
+*/
 }

@@ -1,5 +1,5 @@
 // UserServices: Esta classe gerencia todas as operações de comunicação de rede (API)
-// relacionadas ao perfil do usuário (atualizações de dados, senhas, e endereços)
+// relacionadas ao perfil do usuário (atualizações de dados, senhas)
 // Todas as operações requerem o token de autenticação para identificar o usuário
 
 import 'package:dio/dio.dart';
@@ -72,7 +72,7 @@ class UserServices {
       };
     }
   }
-
+/*
   // GET ADDRESSES (Listar endereços)
   Future<Map<String, dynamic>> getAddresses({required String token}) async {
     try {
@@ -227,4 +227,5 @@ class UserServices {
       };
     }
   }
+  */
 }

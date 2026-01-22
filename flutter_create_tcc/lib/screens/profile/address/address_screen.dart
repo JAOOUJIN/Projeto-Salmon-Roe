@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/address_provider.dart';
 import '../../../widgets/address/address_card.dart';
 
 class AddressScreen extends StatefulWidget {
@@ -17,14 +18,17 @@ class _AddressScreenState extends State<AddressScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().getAddresses();
+      final token = context.read<AuthProvider>().token!;
+      context.read<AddressProvider>().fetchAddresses(token);
     });
   }
 
-  void _navigateToAddAddress() async {
+  Future<void> _navigateToAddAddress() async {
     final added = await Navigator.pushNamed(context, '/addAddress');
+
     if (added == true && mounted) {
-      context.read<AuthProvider>().getAddresses();
+      final token = context.read<AuthProvider>().token!;
+      await context.read<AddressProvider>().fetchAddresses(token);
     }
   }
 
@@ -49,14 +53,13 @@ class _AddressScreenState extends State<AddressScreen> {
         onPressed: _navigateToAddAddress,
         child: const Icon(Icons.add_rounded, color: Colors.black87, size: 30),
       ),
-      body: Consumer<AuthProvider>(
-        builder: (context, auth, _) {
-          if (auth.isLoading) {
+      body: Consumer<AddressProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final addresses = auth.user?.addresses ?? [];
-          if (addresses.isEmpty) {
+          if (provider.addresses.isEmpty) {
             return const Center(
               child: Text(
                 "Nenhum endereço cadastrado ainda.",
@@ -69,10 +72,14 @@ class _AddressScreenState extends State<AddressScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => auth.getAddresses(),
+            onRefresh: () async {
+              final token = context.read<AuthProvider>().token!;
+              await provider.fetchAddresses(token);
+            },
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               children: [
+                // Buscar endereço (visual apenas por enquanto)
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
@@ -88,6 +95,8 @@ class _AddressScreenState extends State<AddressScreen> {
                     ),
                   ),
                 ),
+
+                // 📍 Usar localização
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -103,28 +112,30 @@ class _AddressScreenState extends State<AddressScreen> {
                       "Usar minha localização",
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    subtitle: Text("Localização atual - São Paulo"),
+                    subtitle: Text("Localização atual"),
                   ),
                 ),
+
                 const SizedBox(height: 10),
-                ...List.generate(addresses.length, (index) {
-                  final address = addresses[index];
+
+                //Lista de endereços
+                ...List.generate(provider.addresses.length, (index) {
+                  final address = provider.addresses[index];
                   final isSelected = selectedIndex == index;
-                  final isDefault = address.id == auth.user?.defaultAddressId;
+                  final isDefault = address.id == provider.defaultAddressId;
 
                   return GestureDetector(
                     onTap: () {
                       setState(() => selectedIndex = index);
-                      final selected = {
-                        "street": address.street,
-                        "number": address.number,
-                      };
-                      Navigator.pop(context, selected);
+                      context.read<AddressProvider>().selectAddress(
+                        address,
+                      );
+                      Navigator.pop(context, address);
                     },
                     child: AddressCard(
                       address: address,
                       isSelected: isSelected,
-                      isDefault: isDefault, 
+                      isDefault: isDefault,
                     ),
                   );
                 }),

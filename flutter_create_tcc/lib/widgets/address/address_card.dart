@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/address_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/address_provider.dart';
 
 class AddressCard extends StatefulWidget {
   final AddressModel address;
   final bool isSelected;
-  final bool isDefault; 
+  final bool isDefault;
 
   const AddressCard({
     super.key,
@@ -105,54 +106,41 @@ class _AddressCardState extends State<AddressCard> {
   }
 
   Future<void> _setDefaultAddress() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final result = await auth.setDefaultAddress(addressId: widget.address.id);
+    print('🔥 STARTING _setDefaultAddress');
+    print('🔥 ADDRESS ID: ${widget.address.id}');
+    print('🔥 ADDRESS ID TYPE: ${widget.address.id.runtimeType}');
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
+    try {
+      await addressProvider.setDefault(
+        context.read<AuthProvider>().token!,
+        widget.address.id,
+      );
 
-    if (!mounted) return;
-
-    if (result['success']) {
-      // Fecha o modal primeiro
-      Navigator.of(context).pop();
-
-      // Mostra SnackBar após fechar
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Endereço definido como padrão!'),
-              duration: Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      });
-    } else {
-      // Fecha o modal e mostra erro
-      Navigator.of(context).pop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['error'] ?? 'Erro ao definir padrão'),
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Endereço definido como padrão!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Erro ao definir padrão')));
+      }
     }
   }
 
   Future<void> _editAddress() async {
+    print('🔥 STARTING _editAddress');
+    print('🔥 ADDRESS: ${widget.address}');
     await Navigator.pushNamed(
       context,
       '/editAddress',
       arguments: widget.address,
-    ).then((updated) {
-      if (!mounted) return;
-      if (updated == true) {
-        context.read<AuthProvider>().getAddresses();
-      }
-    });
+    );
   }
 
   Future<void> _deleteAddress() async {
@@ -179,26 +167,34 @@ class _AddressCardState extends State<AddressCard> {
 
     if (!mounted || confirm != true) return;
 
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final result = await auth.deleteAddress(addressId: widget.address.id);
-
-    if (!mounted) return;
-
-    if (result['success']) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Endereço excluído!')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['error'] ?? 'Erro ao excluir')),
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
+    try {
+      await addressProvider.deleteAddress(
+        context.read<AuthProvider>().token!,
+        widget.address.id,
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Endereço excluído!')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Erro ao excluir')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final address = widget.address;
-
+    
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: const EdgeInsets.symmetric(vertical: 6),

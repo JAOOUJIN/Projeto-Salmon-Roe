@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_create_tcc/models/address_model.dart';
 import '../../screens/profile/address/address_screen.dart';
 
 class AddressSection extends StatelessWidget {
-  final String selectedAddress;
-  final ValueChanged<String> onAddressChanged;
+  final AddressModel selectedAddress;
+  final ValueChanged<AddressModel> onAddressChanged;
 
   const AddressSection({
     super.key,
@@ -12,7 +13,7 @@ class AddressSection extends StatelessWidget {
   });
 
   Future<void> _openAddressScreen(BuildContext context) async {
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    final result = await showModalBottomSheet<AddressModel>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -26,10 +27,7 @@ class AddressSection extends StatelessWidget {
     );
 
     if (result != null) {
-      final street = result["street"] ?? "";
-      final number = result["number"] ?? "";
-      
-      onAddressChanged("$street, $number");
+      onAddressChanged(result);
     }
   }
 
@@ -66,7 +64,7 @@ class AddressSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            selectedAddress,
+            "${selectedAddress.street}, ${selectedAddress.number}", 
             style: const TextStyle(fontSize: 15, color: Colors.black87),
           ),
         ],

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/address_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/address_provider.dart';
 import '../../widgets/cart/cart_items_list.dart';
 import '../../widgets/cart/cart_summary_section.dart';
 import 'confirm_address_screen.dart';
@@ -52,6 +53,10 @@ class _CartScreenState extends State<CartScreen>
 
   Future<void> _openConfirmAddressScreen() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
 
     // Verificação de login
     if (!auth.isAuthenticated) {
@@ -61,44 +66,31 @@ class _CartScreenState extends State<CartScreen>
           duration: Duration(seconds: 3),
         ),
       );
-      // Redireciona para o perfil (que mostra LoggedOutView)
       Navigator.pushNamed(context, '/clientProfile');
       return;
     }
 
-    // Se logado, continua o fluxo normalmente
-    final defaultAddress = auth.user?.addresses?.firstWhere(
-      (addr) => addr.id == auth.user?.defaultAddressId,
-      orElse: () => AddressModel(
-        id: '',
-        street: '',
-        number: '',
-        city: '',
-        state: '',
-        zip: '',
-        neighborhood: '',
-      ),
-    );
-
-    String initialAddress = "Selecione um endereço";
-    if (defaultAddress?.id.isNotEmpty == true) {
-      initialAddress = "${defaultAddress!.street}, ${defaultAddress.number}";
+    // ✅ Novo: Usa selectedAddress do provider (inclui seleção manual)
+    final initialAddress = addressProvider.selectedAddress;
+    if (initialAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Selecione um endereço primeiro.")),
+      );
+      return;
     }
 
     if (!mounted) return;
 
     final localContext = context;
 
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    // ✅ Ajustado: Modal retorna AddressModel
+    final result = await showModalBottomSheet<AddressModel>(
       context: localContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => FractionallySizedBox(
         heightFactor: 0.95,
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-          child: ConfirmAddressScreen(initialAddress: initialAddress),
-        ),
+        child: ConfirmAddressScreen(initialAddress: initialAddress),
       ),
     );
 
@@ -108,12 +100,13 @@ class _CartScreenState extends State<CartScreen>
 
     if (!mounted) return;
 
+    // ✅ Ajustado: Passa AddressModel para ReviewOrderScreen
     Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (_, animation, __) => ReviewOrderScreen(
-          address: result['address'] ?? 'Endereço não selecionado',
-          delivery: result['delivery'] ?? 'Entrega padrão',
+          address: result, // AddressModel
+          delivery: "Padrão", // Ou passe dinamicamente se necessário
         ),
         transitionsBuilder: (_, animation, __, child) {
           final slideAnimation =
@@ -123,7 +116,6 @@ class _CartScreenState extends State<CartScreen>
               ).animate(
                 CurvedAnimation(parent: animation, curve: Curves.easeInOut),
               );
-
           return SlideTransition(position: slideAnimation, child: child);
         },
       ),
@@ -134,6 +126,7 @@ class _CartScreenState extends State<CartScreen>
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
     context.watch<AuthProvider>();
+    context.watch<AddressProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),

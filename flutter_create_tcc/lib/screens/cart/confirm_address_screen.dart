@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_create_tcc/models/address_model.dart';
 import '../../widgets/cart/address_section.dart';
 import '../../widgets/cart/delivery_options_section.dart';
-import 'review_order_screen.dart';
 
 class ConfirmAddressScreen extends StatefulWidget {
-  final String initialAddress;
+  final AddressModel initialAddress;
 
   const ConfirmAddressScreen({super.key, required this.initialAddress});
 
@@ -13,7 +13,7 @@ class ConfirmAddressScreen extends StatefulWidget {
 }
 
 class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
-  late String selectedAddress;
+  late AddressModel selectedAddress;
   String selectedDelivery = "Padrão";
 
   @override
@@ -22,22 +22,11 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
     selectedAddress = widget.initialAddress;
   }
 
-  void _continueToReview() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => FractionallySizedBox(
-        heightFactor: 0.95,
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-          child: ReviewOrderScreen(
-            address: selectedAddress,
-            delivery: selectedDelivery,
-          ),
-        ),
-      ),
-    );
+  void _continue() {
+    Navigator.pop(
+      context,
+      selectedAddress,
+    ); // Retorna AddressModel para CartScreen
   }
 
   @override
@@ -89,7 +78,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                   vertical: 12,
                 ),
                 child: ElevatedButton(
-                  onPressed: _continueToReview,
+                  onPressed: _continue,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF4C4C),
                     minimumSize: const Size(double.infinity, 52),

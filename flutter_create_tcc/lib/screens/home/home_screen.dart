@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
+import 'package:flutter_create_tcc/providers/address_provider.dart';
 import 'package:flutter_create_tcc/providers/product_provider.dart';
 import 'package:flutter_create_tcc/providers/cart_provider.dart';
 import 'package:flutter_create_tcc/providers/auth_provider.dart';
@@ -18,51 +19,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _initialized = false;
-  String currentAddress = "Selecione um endereço";
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<ProductProvider>().fetchProducts();
-      });
-      _loadDefaultAddress();
-      _initialized = true;
-    }
-  }
-
-  void _loadDefaultAddress() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final addresses = auth.user?.addresses ?? [];
-    final defaultId = auth.user?.defaultAddressId;
-
-    if (addresses.isNotEmpty && defaultId != null) {
-      final defaultAddress = addresses.firstWhere(
-        (addr) => addr.id == defaultId,
-        orElse: () => AddressModel(
-          id: '',
-          street: '',
-          number: '',
-          city: '',
-          state: '',
-          zip: '',
-          neighborhood: '',
-        ),
-      );
-
-      if (defaultAddress.id.isNotEmpty) {
-        setState(() {
-          currentAddress = "${defaultAddress.street}, ${defaultAddress.number}";
-        });
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final auth = context.read<AuthProvider>();
+      if (auth.isAuthenticated) {
+        await context.read<AddressProvider>().fetchAddresses(auth.token!);
       }
-    }
-  }
-
-  void _updateAddress(String newAddress) {
-    setState(() {
-      currentAddress = newAddress;
     });
   }
 
@@ -77,13 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
           duration: Duration(seconds: 3),
         ),
       );
-      // Redireciona para o perfil (que mostra LoggedOutView)
+      // Redireciona para o perfil
       Navigator.pushNamed(context, '/clientProfile');
       return;
     }
 
-    // Se logado abre o modal normalmente
-    final result = await showModalBottomSheet<Map<String, dynamic>>(
+    await showModalBottomSheet<AddressModel>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -95,23 +58,21 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-
-    if (result != null) {
-      final street = result["street"] ?? "";
-      final number = result["number"] ?? "";
-      final newAddress = "$street, $number";
-      _updateAddress(newAddress);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ProductProvider>();
     final cartProvider = context.watch<CartProvider>();
+    final addressProvider = context.watch<AddressProvider>();
 
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final currentAddress = addressProvider.selectedAddress != null
+        ? "${addressProvider.selectedAddress!.street}, ${addressProvider.selectedAddress!.number}"
+        : "Selecione um endereço";
 
     return SafeArea(
       child: Scaffold(
