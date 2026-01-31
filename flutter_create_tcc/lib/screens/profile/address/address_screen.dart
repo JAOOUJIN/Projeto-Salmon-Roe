@@ -97,23 +97,71 @@ class _AddressScreenState extends State<AddressScreen> {
                 ),
 
                 // 📍 Usar localização
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: const ListTile(
-                    leading: Icon(
-                      Icons.my_location_rounded,
-                      color: Colors.redAccent,
-                    ),
-                    title: Text(
-                      "Usar minha localização",
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: Text("Localização atual"),
-                  ),
+                Consumer<AddressProvider>(
+                  builder: (context, provider, _) {
+                    final isCurrentLocationSelected =
+                        provider.selectedAddress != null &&
+                        provider.selectedAddress!.id.startsWith(
+                          'current_location_',
+                        );
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: provider.isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await provider.useCurrentLocation();
+
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              } catch (_) {
+                                if (context.mounted &&
+                                    provider.errorMessage != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(provider.errorMessage!),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ListTile(
+                          leading: provider.isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.my_location_rounded,
+                                  color: Colors.redAccent,
+                                ),
+                          title: const Text(
+                            "Usar minha localização",
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: Text(
+                            provider.isLoading
+                                ? "Obtendo localização..."
+                                : isCurrentLocationSelected
+                                ? "${provider.selectedAddress!.street}, ${provider.selectedAddress!.number}"
+                                : "Localização atual",
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 10),
@@ -127,10 +175,8 @@ class _AddressScreenState extends State<AddressScreen> {
                   return GestureDetector(
                     onTap: () {
                       setState(() => selectedIndex = index);
-                      context.read<AddressProvider>().selectAddress(
-                        address,
-                      );
-                      Navigator.pop(context, address);
+                      context.read<AddressProvider>().selectAddress(address);
+                      Navigator.pop(context);
                     },
                     child: AddressCard(
                       address: address,

@@ -47,5 +47,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Este app precisa acessar sua localização para encontrar endereços próximos.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Este app precisa acessar sua localização para encontrar endereços próximos.</string>
 	</dict>
 </plist>

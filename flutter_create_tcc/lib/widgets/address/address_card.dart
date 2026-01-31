@@ -106,9 +106,6 @@ class _AddressCardState extends State<AddressCard> {
   }
 
   Future<void> _setDefaultAddress() async {
-    print('🔥 STARTING _setDefaultAddress');
-    print('🔥 ADDRESS ID: ${widget.address.id}');
-    print('🔥 ADDRESS ID TYPE: ${widget.address.id.runtimeType}');
     final addressProvider = Provider.of<AddressProvider>(
       context,
       listen: false,
@@ -134,8 +131,6 @@ class _AddressCardState extends State<AddressCard> {
   }
 
   Future<void> _editAddress() async {
-    print('🔥 STARTING _editAddress');
-    print('🔥 ADDRESS: ${widget.address}');
     await Navigator.pushNamed(
       context,
       '/editAddress',

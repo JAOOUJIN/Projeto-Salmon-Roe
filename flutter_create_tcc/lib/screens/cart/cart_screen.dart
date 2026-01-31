@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/address_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/address_provider.dart';
 import '../../widgets/cart/cart_items_list.dart';
 import '../../widgets/cart/cart_summary_section.dart';
 import 'confirm_address_screen.dart';
-import 'review_order_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -70,54 +68,20 @@ class _CartScreenState extends State<CartScreen>
       return;
     }
 
-    // ✅ Novo: Usa selectedAddress do provider (inclui seleção manual)
-    final initialAddress = addressProvider.selectedAddress;
-    if (initialAddress == null) {
+    if (addressProvider.selectedAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Selecione um endereço primeiro.")),
       );
       return;
     }
 
-    if (!mounted) return;
-
-    final localContext = context;
-
-    // ✅ Ajustado: Modal retorna AddressModel
-    final result = await showModalBottomSheet<AddressModel>(
-      context: localContext,
+    await showModalBottomSheet(
+      context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => FractionallySizedBox(
         heightFactor: 0.95,
-        child: ConfirmAddressScreen(initialAddress: initialAddress),
-      ),
-    );
-
-    if (!mounted || result == null) return;
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    if (!mounted) return;
-
-    // ✅ Ajustado: Passa AddressModel para ReviewOrderScreen
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 400),
-        pageBuilder: (_, animation, __) => ReviewOrderScreen(
-          address: result, // AddressModel
-          delivery: "Padrão", // Ou passe dinamicamente se necessário
-        ),
-        transitionsBuilder: (_, animation, __, child) {
-          final slideAnimation =
-              Tween<Offset>(
-                begin: const Offset(1.0, 0.0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeInOut),
-              );
-          return SlideTransition(position: slideAnimation, child: child);
-        },
+        child: const ConfirmAddressScreen(), 
       ),
     );
   }

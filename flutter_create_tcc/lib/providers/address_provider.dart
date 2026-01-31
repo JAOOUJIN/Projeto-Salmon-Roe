@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import '../models/address_model.dart';
 import '../services/address_services.dart';
 
@@ -8,6 +10,17 @@ class AddressProvider extends ChangeNotifier {
   List<AddressModel> addresses = [];
   String? defaultAddressId;
   bool isLoading = false;
+  String? errorMessage;
+
+  void _setLoading(bool value) {
+    isLoading = value;
+    notifyListeners();
+  }
+
+  void _setError(String? message) {
+    errorMessage = message;
+    notifyListeners();
+  }
 
   Future<void> fetchAddresses(String token) async {
     isLoading = true;
@@ -128,6 +141,77 @@ class AddressProvider extends ChangeNotifier {
     );
 
     notifyListeners();
+  }
+
+  Future<void> useCurrentLocation() async {
+    _setLoading(true); 
+    _setError(null); 
+
+    try {
+      // 1. Verificar e solicitar permissões
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Permissão de localização negada.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Permissão de localização negada permanentemente. Habilite nas configurações.',
+        );
+      }
+
+      // 2. Obter posição atual
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      );
+
+      // 3. Converter coordenadas em endereço
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        throw Exception(
+          'Não foi possível obter o endereço da localização atual.',
+        );
+      }
+
+      final place = placemarks.first;
+
+      // 4. AddressModel temporário
+      final tempAddress = AddressModel(
+        id: 'current_location_${DateTime.now().millisecondsSinceEpoch}',
+        street: place.thoroughfare ?? place.street ?? 'Rua desconhecida',
+        number: place.subThoroughfare ?? place.subAdministrativeArea ?? '',
+        neighborhood: place.subLocality ?? place.locality ?? '',
+        city: place.locality ?? place.administrativeArea ?? '',
+        state: place.administrativeArea ?? '',
+        zip: place.postalCode ?? '',
+        complement: 'Localização atual (GPS)',
+      );
+
+      // 5. Selecionar como endereço ativo
+      selectAddress(tempAddress);
+
+      debugPrint(
+        'Endereço atual definido: ${tempAddress.street}, ${tempAddress.number}',
+      );
+    } catch (e) {
+      _setError(
+        e.toString().replaceAll('Exception:', '').trim(),
+      ); 
+      debugPrint('Erro ao usar localização atual: $e');
+      rethrow; 
+    } finally {
+      _setLoading(false); 
+    }
   }
 
   void clear() {
