@@ -11,10 +11,25 @@ class AddressProvider extends ChangeNotifier {
   String? defaultAddressId;
   bool isLoading = false;
   String? errorMessage;
+  String _search = '';
 
   void _setLoading(bool value) {
     isLoading = value;
     notifyListeners();
+  }
+
+  void setSearch(String value) {
+    _search = value.toLowerCase();
+    notifyListeners();
+  }
+
+  List<AddressModel> get filteredAddresses {
+    if (_search.isEmpty) return addresses;
+
+    return addresses.where((a) {
+      final text = '${a.street} ${a.number} ${a.neighborhood}'.toLowerCase();
+      return text.startsWith(_search) || text.contains(_search);
+    }).toList();
   }
 
   void _setError(String? message) {
@@ -144,8 +159,8 @@ class AddressProvider extends ChangeNotifier {
   }
 
   Future<void> useCurrentLocation() async {
-    _setLoading(true); 
-    _setError(null); 
+    _setLoading(true);
+    _setError(null);
 
     try {
       // 1. Verificar e solicitar permissões
@@ -204,13 +219,11 @@ class AddressProvider extends ChangeNotifier {
         'Endereço atual definido: ${tempAddress.street}, ${tempAddress.number}',
       );
     } catch (e) {
-      _setError(
-        e.toString().replaceAll('Exception:', '').trim(),
-      ); 
+      _setError(e.toString().replaceAll('Exception:', '').trim());
       debugPrint('Erro ao usar localização atual: $e');
-      rethrow; 
+      rethrow;
     } finally {
-      _setLoading(false); 
+      _setLoading(false);
     }
   }
 

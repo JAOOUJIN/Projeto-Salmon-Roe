@@ -79,21 +79,26 @@ class _AddressScreenState extends State<AddressScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               children: [
-                // Buscar endereço (visual apenas por enquanto)
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: const ListTile(
-                    leading: Icon(Icons.search, color: Colors.grey),
-                    title: Text(
-                      "Buscar endereço e número",
-                      style: TextStyle(color: Colors.grey, fontSize: 15),
-                    ),
-                  ),
+                Consumer<AddressProvider>(
+                  builder: (context, provider, _) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextField(
+                        onChanged: provider.setSearch,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search),
+                          hintText: "Buscar endereço e número",
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
                 // 📍 Usar localização
@@ -166,25 +171,39 @@ class _AddressScreenState extends State<AddressScreen> {
 
                 const SizedBox(height: 10),
 
-                //Lista de endereços
-                ...List.generate(provider.addresses.length, (index) {
-                  final address = provider.addresses[index];
-                  final isSelected = selectedIndex == index;
-                  final isDefault = address.id == provider.defaultAddressId;
+                Consumer<AddressProvider>(
+                  builder: (context, provider, _) {
+                    final addresses = provider.filteredAddresses;
 
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => selectedIndex = index);
-                      context.read<AddressProvider>().selectAddress(address);
-                      Navigator.pop(context);
-                    },
-                    child: AddressCard(
-                      address: address,
-                      isSelected: isSelected,
-                      isDefault: isDefault,
-                    ),
-                  );
-                }),
+                    if (addresses.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          "Nenhum endereço encontrado",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: addresses.map((address) {
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<AddressProvider>().selectAddress(
+                              address,
+                            );
+                            Navigator.of(context).pop();
+                          },
+                          child: AddressCard(
+                            address: address,
+                            isSelected: false,
+                            isDefault: address.id == provider.defaultAddressId,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
               ],
             ),
           );
