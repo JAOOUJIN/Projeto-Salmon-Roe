@@ -67,7 +67,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
           return Column(
             children: [
-              // ✅ Container Unificado: Busca + Categorias com sombra
+              // Container Busca + Categorias 
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -129,7 +129,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
 
-              // ✅ Barra de resultados elegante
+              // Barra de resultados 
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
@@ -178,7 +178,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ],
                     ),
 
-                    // ✅ Botão limpar estilizado
+                    // Botão limpar 
                     if (hasFilters)
                       GestureDetector(
                         onTap: () => _clearFilters(provider),
@@ -218,7 +218,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
 
-              // ✅ Grid de produtos
+              // Grid de produtos
               Expanded(
                 child: products.isEmpty
                     ? _buildEmptyState()

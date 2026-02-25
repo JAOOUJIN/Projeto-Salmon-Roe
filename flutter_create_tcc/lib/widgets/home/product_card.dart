@@ -117,7 +117,7 @@ class _ProductCardState extends State<ProductCard>
                               top: Radius.circular(18),
                             ),
                             child: Hero(
-                              tag: "product_${product.name}_${widget.index}",
+                              tag: "product_${product.id}",
                               child: Image.network(
                                 product.imageUrl,
                                 height: widget.isWide ? 180 : 130,

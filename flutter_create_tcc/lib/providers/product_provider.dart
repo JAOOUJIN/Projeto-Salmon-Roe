@@ -13,7 +13,7 @@ class ProductProvider extends ChangeNotifier {
   // Lista principal que armazena todos os produtos carregados
   List<ProductModel> products = [];
 
-  // Indica o estado atual de carregamento (útil para feedback visual na UI)
+  // Indica o estado atual de carregamento 
   bool isLoading = false;
 
   // Filtros de categoria e busca (state interno do provider)

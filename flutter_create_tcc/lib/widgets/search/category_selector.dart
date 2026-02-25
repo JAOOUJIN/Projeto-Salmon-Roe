@@ -17,7 +17,7 @@ class CategorySelector extends StatelessWidget {
           return ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: categories.length + 1, // +1 para opção "Todos"
+            itemCount: categories.length + 1, 
             itemBuilder: (context, index) {
               // Primeira opção: "Todos"
               if (index == 0) {
