@@ -16,6 +16,14 @@ class ProductProvider extends ChangeNotifier {
   // Indica o estado atual de carregamento (útil para feedback visual na UI)
   bool isLoading = false;
 
+  // Filtros de categoria e busca (state interno do provider)
+  String? _selectedCategory;
+  String _search = '';
+
+  // Getters públicos para acessar os filtros atuais (categoria e busca)
+  String? get selectedCategory => _selectedCategory;
+  String get search => _search;
+
   // Busca os produtos do serviço e atualiza o estado
   // Notifica os listeners antes e depois da operação para atualizar a UI
   Future<void> fetchProducts() async {
@@ -26,11 +34,53 @@ class ProductProvider extends ChangeNotifier {
       // 2. Delega a busca de dados para o serviço (separação de responsabilidades)
       products = await _service.getProducts(); // Busca os produtos.
     } catch (e) {
-      debugPrint("Erro ao carregar produtos: $e"); // Log de erro.
+      debugPrint("Erro ao carregar produtos: $e");
     }
 
     isLoading = false;
     notifyListeners(); // 3. Finaliza o estado de carregamento e notifica a UI com os dados ou o erro
+  }
+
+  // Getter filtrado combinado (categoria + busca)
+  List<ProductModel> get filteredProducts {
+    return products.where((product) {
+      // Filtro por categoria (se selecionada)
+      final matchesCategory =
+          _selectedCategory == null ||
+          product.category.name == _selectedCategory;
+
+      // Filtro por busca (se houver texto)
+      final matchesSearch =
+          _search.isEmpty ||
+          product.name.toLowerCase().contains(_search.toLowerCase());
+
+      // Retorna true se passar em ambos os filtros
+      return matchesCategory && matchesSearch;
+    }).toList();
+  }
+
+  // Getter para produtos por categoria específica
+  List<ProductModel> getProductsByCategory(String categoryName) {
+    return products.where((p) => p.category.name == categoryName).toList();
+  }
+
+  // Define a categoria selecionada
+  void setCategory(String? category) {
+    _selectedCategory = category;
+    notifyListeners();
+  }
+
+  //Define o texto de busca
+  void setSearch(String value) {
+    _search = value.toLowerCase();
+    notifyListeners();
+  }
+
+  //Limpa todos os filtros
+  void clearFilters() {
+    _selectedCategory = null;
+    _search = '';
+    notifyListeners();
   }
 
   // Getter filtrado: Retorna apenas os produtos destacados (featured), baseado na propriedade do modelo

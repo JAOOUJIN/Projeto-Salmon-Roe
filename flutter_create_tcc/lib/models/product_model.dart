@@ -2,6 +2,8 @@
 // Este modelo é a fonte canônica para os atributos de um produto na aplicação,
 // incluindo informações de preço, imagem e status de destaque/novidade
 
+import 'package:flutter_create_tcc/models/product_category.dart';
+
 class ProductModel {
   // Atributos finais (final) garantem que o objeto seja imutável após a criação
   // Isso previne alterações de estado inesperadas e simplifica a gestão de dados
@@ -13,6 +15,7 @@ class ProductModel {
   final double oldPrice;
   final bool isFeatured;
   final bool isNew;
+  final ProductCategory category;
 
   // Construtor principal para inicialização de todos os atributos obrigatórios
   ProductModel({
@@ -24,6 +27,7 @@ class ProductModel {
     required this.oldPrice,
     required this.isFeatured,
     required this.isNew,
+    required this.category,
   });
 
   // Construtor de fábrica (Factory) para desserialização de Map (JSON) recebido do backend
@@ -41,6 +45,7 @@ class ProductModel {
       // Valores booleanos com fallback para false
       isFeatured: json['is_destaque'] ?? false,
       isNew: json['is_novo'] ?? false,
+      category: ProductCategoryExtension.fromString(json['categoria'] ?? 'temakis'), 
     );
   }
 
@@ -57,6 +62,7 @@ class ProductModel {
       'vl_antigo': oldPrice,
       'is_destaque': isFeatured,
       'is_novo': isNew,
+      'categoria': category.name, 
     };
   }
 }

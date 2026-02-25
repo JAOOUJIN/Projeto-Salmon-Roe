@@ -33,6 +33,11 @@ const ProductSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+   categoria: {
+    type: String,
+    enum: ['temakis', 'combinados', 'hotrolls', 'sushis', 'sashimis', 'especiais', 'itensaparte'],
+    default: 'temakis',
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', ProductSchema);

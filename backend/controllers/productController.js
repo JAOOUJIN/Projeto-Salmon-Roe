@@ -12,9 +12,9 @@ exports.getProducts = async (req, res) => {
 
 // Adicionar produto ADM
 exports.addProduct = async (req, res) => {
-  const { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo } = req.body;
+  const { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo, categoria } = req.body;
   try {
-    const newProduct = new Product({ name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo });
+    const newProduct = new Product({ name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo, categoria });
     await newProduct.save();
     res.status(201).json({ message: 'Produto adicionado!', product: newProduct });
   } catch (error) {
@@ -25,9 +25,9 @@ exports.addProduct = async (req, res) => {
 // Atualizar produto
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo } = req.body;
+  const { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo, categoria } = req.body;
   try {
-    const product = await Product.findByIdAndUpdate(id, { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo }, { new: true });
+    const product = await Product.findByIdAndUpdate(id, { name_produto, ds_produto, image_url, vl_produto, vl_antigo, is_destaque, is_novo, categoria }, { new: true });
     if (!product) return res.status(404).json({ error: 'Produto não encontrado.' });
     res.json({ message: 'Produto atualizado!', product });
   } catch (error) {
