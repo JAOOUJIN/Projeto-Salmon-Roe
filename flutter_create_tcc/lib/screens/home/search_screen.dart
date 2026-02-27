@@ -234,7 +234,11 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                         itemBuilder: (context, index) {
                           final product = products[index];
-                          return ProductCard(product: product);
+                          return ProductCard(
+                            product: product,
+                            index: index,
+                            heroPrefix: "search_",
+                          );
                         },
                       ),
               ),

@@ -5,13 +5,15 @@ import '../../screens/home/product_detail_screen.dart';
 class ProductCard extends StatefulWidget {
   final ProductModel product;
   final bool isWide;
-  final int index; 
+  final int index;
+  final String heroPrefix;
 
   const ProductCard({
     super.key,
     required this.product,
     this.isWide = false,
     this.index = 0,
+    this.heroPrefix = '',
   });
 
   @override
@@ -72,6 +74,7 @@ class _ProductCardState extends State<ProductCard>
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
+    final heroTag = "${widget.heroPrefix}product_${product.id}";
 
     return FadeTransition(
       opacity: _fadeAnim,
@@ -82,7 +85,8 @@ class _ProductCardState extends State<ProductCard>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProductDetailScreen(product: product),
+                builder: (_) =>
+                    ProductDetailScreen(product: product, heroTag: heroTag)
               ),
             );
           },
@@ -117,7 +121,7 @@ class _ProductCardState extends State<ProductCard>
                               top: Radius.circular(18),
                             ),
                             child: Hero(
-                              tag: "product_${product.id}",
+                              tag: heroTag,
                               child: Image.network(
                                 product.imageUrl,
                                 height: widget.isWide ? 180 : 130,

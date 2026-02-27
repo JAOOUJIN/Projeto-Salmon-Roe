@@ -27,8 +27,11 @@ class FeaturedProductsSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: products.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) =>
-                ProductCard(product: products[index]),
+            itemBuilder: (context, index) => ProductCard(
+              product: products[index],
+              index: index,
+              heroPrefix: "featured_",
+            ),
           ),
         ),
       ],

@@ -8,8 +8,9 @@ import '../../widgets/product/bottom_action_section.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
+  final String heroTag;
 
-  const ProductDetailScreen({super.key, required this.product});
+  const ProductDetailScreen({super.key, required this.product, required this.heroTag});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -63,7 +64,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ProductImageHeader(imageUrl: product.imageUrl),
+                ProductImageHeader(
+                  imageUrl: product.imageUrl,
+                  heroTag: widget.heroTag,
+                ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(

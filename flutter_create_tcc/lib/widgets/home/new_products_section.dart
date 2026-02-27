@@ -22,12 +22,14 @@ class NewProductsSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Column(
-          children: products.map((p) {
+          children: List.generate(products.length, (index) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: ProductCard(
-                product: p,
+                product: products[index],
+                index: index,
                 isWide: true,
+                heroPrefix: "new_",
               ),
             );
           }).toList(),

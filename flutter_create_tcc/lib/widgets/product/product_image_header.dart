@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 
 class ProductImageHeader extends StatelessWidget {
   final String imageUrl;
+  final String heroTag;
 
-  const ProductImageHeader({super.key, required this.imageUrl});
+  const ProductImageHeader({super.key, required this.imageUrl, required this.heroTag});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Hero(
-          tag: imageUrl,
+          tag: heroTag,
           child: Image.network(
             imageUrl,
             width: double.infinity,
