@@ -1,4 +1,4 @@
-// AuthProvider: Gerencia o estado de autenticação e dados do usuário (login, logout, registro, auto-login, e CRUD de informações/endereços)
+// AuthProvider: Gerencia o estado de autenticação e dados do usuário (login, logout, registro, auto-login, e CRUD de informações)
 // Utiliza ChangeNotifier para notificar a interface de usuário (UI) sobre as mudanças de estado
 // Armazena token e dados do usuário localmente (SharedPreferences) para persistência
 
@@ -243,5 +243,18 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return {'success': false, 'error': 'Erro: $e'};
     }
+  }
+
+  // FORGOT PASSWORD - solicita envio do OTP
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _authService.forgotPassword(email);
+
+    _isLoading = false;
+    notifyListeners();
+
+    return result;
   }
 }

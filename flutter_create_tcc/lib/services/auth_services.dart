@@ -52,4 +52,21 @@ class AuthServices {
       };
     }
   }
+
+  // FORGOT PASSWORD - envia OTP para email
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await dio.post(
+        '$baseUrl/forgot-password',
+        data: {'email': email},
+      );
+
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': e.response?.data['error'] ?? 'Erro ao enviar código',
+      };
+    }
+  }
 }
