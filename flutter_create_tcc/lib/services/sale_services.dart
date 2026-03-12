@@ -9,7 +9,7 @@ import '../models/sale_model.dart';
 class SaleServices {
   final Dio dio = Dio();
   final String baseUrl =
-      "${Config.baseUrl}/sale"; // Endereço base para as rotas de venda
+      "${Config.baseUrl}/sales"; // Endereço base para as rotas de venda
 
   // Criar nova venda (Requer autenticação)
   Future<Map<String, dynamic>> createSale({

@@ -30,7 +30,7 @@ class AddressModel {
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
       // Usa o operador '??' para fornecer um valor padrão ('') caso o campo esteja nulo ou ausente no JSON
-      id: json['_id'] ?? '',
+      id: json['id'] ?? '',
       street: json['street'] ?? '',
       number: json['number'] ?? '',
       city: json['city'] ?? '',
@@ -45,7 +45,7 @@ class AddressModel {
   // ou salvo em SharedPreferences
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'id': id,
       'street': street,
       'number': number,
       'city': city,
