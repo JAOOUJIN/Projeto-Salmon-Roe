@@ -257,4 +257,46 @@ class AuthProvider with ChangeNotifier {
 
     return result;
   }
+
+  // VERIFY RESET OTP - verifica código enviado ao email
+  Future<Map<String, dynamic>> verifyResetOtp(String email, String otp) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _authService.verifyOtp(email, otp);
+
+    _isLoading = false;
+    notifyListeners();
+
+    return result;
+  }
+
+  // RESET PASSWORD - redefine senha usando token recebido após verificar OTP
+  Future<Map<String, dynamic>> resetPassword(
+    String resetToken,
+    String newPassword,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _authService.resetPassword(resetToken, newPassword);
+
+    _isLoading = false;
+    notifyListeners();
+
+    return result;
+  }
+
+  // RESEND OTP - reenvia código OTP para o email do usuário
+  Future<Map<String, dynamic>> resendOtp(String email) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await _authService.forgotPassword(email);
+
+    _isLoading = false;
+    notifyListeners();
+
+    return result;
+  }
 }

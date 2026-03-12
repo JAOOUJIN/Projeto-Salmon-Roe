@@ -8,6 +8,9 @@ import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login/login_screen.dart';
 import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
+import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
+import 'package:flutter_create_tcc/screens/login/reset_password_screen.dart';
+import 'package:flutter_create_tcc/screens/login/verify_otp_screen.dart';
 import 'package:flutter_create_tcc/screens/home/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
 import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
@@ -19,7 +22,6 @@ import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
-import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
@@ -72,6 +74,8 @@ class MyApp extends StatelessWidget {
         '/addAddress': (context) => const AddAddressScreen(),
         '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
         '/cart': (context) => const CartScreen(),
+        '/verifyOtp': (context) => const VerifyOtpScreen(email: ''), 
+        '/resetPassword': (context) => const ResetPasswordScreen(email: '', resetToken: '',),
       },
     );
   }
