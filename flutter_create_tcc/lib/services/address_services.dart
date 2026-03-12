@@ -5,7 +5,7 @@ import '../models/address_model.dart';
 class AddressService {
   final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "${Config.baseUrl}/address",
+      baseUrl: "${Config.baseUrl}/user/address",
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 5),
     ),
@@ -65,10 +65,10 @@ class AddressService {
   // SET DEFAULT
   Future<String?> setDefaultAddress(String token, String addressId) async {
     final response = await dio.put(
-      '/set-default/$addressId',
+      '/set-default-address/$addressId',
       options: _auth(token),
     );
 
-    return response.data['user']['defaultAddressId'];
+    return response.data['defaultAddressId'];
   }
 }
