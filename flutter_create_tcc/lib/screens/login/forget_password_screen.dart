@@ -57,12 +57,6 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F8FA),
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: const SizedBox.shrink(),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(

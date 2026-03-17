@@ -9,7 +9,6 @@ import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login/login_screen.dart';
 import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
-import 'package:flutter_create_tcc/screens/login/reset_password_screen.dart';
 import 'package:flutter_create_tcc/screens/login/verify_otp_screen.dart';
 import 'package:flutter_create_tcc/screens/home/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
@@ -75,7 +74,6 @@ class MyApp extends StatelessWidget {
         '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
         '/cart': (context) => const CartScreen(),
         '/verifyOtp': (context) => const VerifyOtpScreen(email: ''), 
-        '/resetPassword': (context) => const ResetPasswordScreen(email: '', resetToken: '',),
       },
     );
   }

@@ -70,41 +70,28 @@ class AuthServices {
     }
   }
 
-  // VERIFICAR OTP - verifica o código OTP enviado para o email do usuário
-  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
-    try {
-      final response = await dio.post(
-        '$baseUrl/verify-otp',
-        data: {'email': email, 'otp': otp},
-      );
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'error': e.response?.data['error'] ?? 'Erro ao verificar código',
-      };
-    }
-  }
-
-  // REDEFINIR SENHA - redefine a senha do usuário usando o token de redefinição recebido após verificar o OTP
+  // REDEFINIR SENHA - envia nova senha junto com OTP para redefinir a senha do usuário
   Future<Map<String, dynamic>> resetPassword(
-    String resetToken,
-    String newPassword,
-  ) async {
-    try {
-      final response = await dio.post(
-        '$baseUrl/reset-password',
-        data: {
-          'resetToken': resetToken,
-          'newPassword': newPassword,
-        },
-      );
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'error': e.response?.data['error'] ?? 'Erro ao redefinir senha',
-      };
-    }
+  String email,
+  String otp,
+  String newPassword,
+) async {
+  try {
+    final response = await dio.post(
+      '$baseUrl/reset-password',
+      data: {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      },
+    );
+
+    return {'success': true, 'data': response.data};
+  } on DioException catch (e) {
+    return {
+      'success': false,
+      'error': e.response?.data['error'] ?? 'Erro ao redefinir senha',
+    };
   }
+}
 }
