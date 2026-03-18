@@ -23,6 +23,10 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
 
   bool _isLoading = false;
 
+  bool _showCurrentPassword = false;
+  bool _showNewPassword = false;
+  bool _showConfirmPassword = false;
+
   // Inicializa os controladores com os dados do usuário
   @override
   void initState() {
@@ -136,11 +140,23 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
               // SENHA ATUAL
               TextFormField(
                 controller: _currentPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_showCurrentPassword,
+                decoration: InputDecoration(
                   labelText: 'Senha atual',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showCurrentPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showCurrentPassword = !_showCurrentPassword;
+                      });
+                    },
+                  ),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                 ),
@@ -157,11 +173,23 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
               // NOVA SENHA
               TextFormField(
                 controller: _newPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_showNewPassword,
+                decoration: InputDecoration(
                   labelText: 'Nova senha',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showNewPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showNewPassword = !_showNewPassword;
+                      });
+                    },
+                  ),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                 ),
@@ -182,29 +210,37 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
               // CONFIRMAR NOVA SENHA
               TextFormField(
                 controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: !_showConfirmPassword,
+                decoration: InputDecoration(
                   labelText: 'Confirmar nova senha',
-                  prefixIcon: Icon(Icons.lock_reset),
-                  border: OutlineInputBorder(
+                  prefixIcon: const Icon(Icons.lock_reset_outlined),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                  border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16)),
                   ),
                 ),
                 validator: (value) {
-                  if (_newPasswordController.text.isNotEmpty) {
-                    if (value == null || value.isEmpty) {
-                      return 'Confirme a nova senha.';
-                    }
-                    if (value != _newPasswordController.text) {
-                      return 'As senhas não coincidem.';
-                    }
+                  if (_newPasswordController.text.isNotEmpty &&
+                      value != _newPasswordController.text) {
+                    return 'As senhas não coincidem.';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 40),
 
-              // BOTÃO SALVAR 
+              // BOTÃO SALVAR
               SizedBox(
                 width: double.infinity,
                 height: 52,
