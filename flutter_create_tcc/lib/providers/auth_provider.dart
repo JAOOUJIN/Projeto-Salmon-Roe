@@ -127,7 +127,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // UPDATE USER DATA - Mudança: Removido userId (usa token do backend)
+  // UPDATE USER DATA - Permite atualizar nome e CPF do usuário (Requer autenticação)
   Future<Map<String, dynamic>> updateUserData({
     String? name,
     String? cpf,
@@ -142,10 +142,9 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final result = await _userService.updateUserData(
-        token:
-            _token!, // 2. Envia o token para o serviço para identificar o usuário no backend
+        token: _token!,
         name: name,
-        cpf: cpf,
+        cpf: (cpf != null && cpf.isNotEmpty) ? cpf : null,
       );
 
       _isLoading = false;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../../../providers/auth_provider.dart';
 
 // Tela para editar informações pessoais: nome e CPF
@@ -26,9 +27,16 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
     // Preenche os campos com os dados atuais
     _nameController.text = user?.name ?? '';
-    _cpfController.text = user?.cpf ?? '';
+    if (user?.cpf != null && user!.cpf!.isNotEmpty) {
+      _cpfController.text = cpfMask.maskText(user.cpf!);
+    }
     _cpfLocked = _cpfController.text.isNotEmpty;
   }
+
+  final cpfMask = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   bool _isValidCPF(String cpf) {
     // Remove tudo que não for número
@@ -61,9 +69,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
     setState(() => _isLoading = true);
 
+    final cpf = (!_cpfLocked && _cpfController.text.trim().isNotEmpty)
+        ? _cpfController.text.trim()
+        : null;
+
     final result = await authProvider.updateUserData(
       name: _nameController.text.trim(),
-      cpf: _cpfLocked ? null : _cpfController.text.trim(),
+      cpf: cpf,
     );
 
     setState(() => _isLoading = false);
@@ -125,26 +137,49 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               // CPF
               TextFormField(
                 controller: _cpfController,
-                enabled: !_cpfLocked,
+                readOnly: _cpfLocked,
+                inputFormatters: [cpfMask],
                 decoration: InputDecoration(
                   labelText: 'CPF',
                   prefixIcon: const Icon(Icons.badge_outlined),
                   suffixIcon: _cpfLocked
                       ? const Icon(Icons.lock_outline, color: Colors.grey)
                       : null,
-                  border: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
+
+                  filled: true,
+                  fillColor: _cpfLocked
+                      ? Colors.grey.withValues(alpha: 0.08)
+                      : Colors.white,
+
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: _cpfLocked
+                          ? Colors.grey.shade300
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: _cpfLocked ? Colors.grey : const Color(0xFFFF4C4C),
+                      width: 2,
+                    ),
                   ),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (_cpfLocked) return null;
+
                   if (value == null || value.trim().isEmpty) {
-                    return 'Por favor, insira seu CPF.';
+                    return null;
                   }
+
                   if (!_isValidCPF(value.trim())) {
                     return 'CPF inválido.';
                   }
+
                   return null;
                 },
               ),
