@@ -14,6 +14,11 @@ const SaleItemSchema = new mongoose.Schema({
 });
 
 const SaleSchema = new mongoose.Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   cd_venda: {
     type: Number,
     required: true,
@@ -33,7 +38,7 @@ const SaleSchema = new mongoose.Schema({
   itens: [SaleItemSchema],
 }, {
   timestamps: {
-    currentTime: () => new Date(Date.now() - 3 * 60 * 60 * 1000) 
+    currentTime: () => new Date(Date.now() - 3 * 60 * 60 * 1000)
   }
 });
 

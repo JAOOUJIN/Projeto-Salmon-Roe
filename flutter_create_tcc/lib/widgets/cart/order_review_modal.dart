@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/orders_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OrderReviewModal extends StatefulWidget {
@@ -38,6 +40,11 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      
+      final ordersProvider = context.read<OrdersProvider>();
+      ordersProvider.fetchOrders(widget.authProvider.token!);
+      ordersProvider.fetchLastOrderStatus(widget.authProvider.token!);
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Pedido realizado com sucesso!")),

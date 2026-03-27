@@ -44,33 +44,83 @@ class SaleServices {
     }
   }
 
-  // Buscar histórico de vendas (Requer autenticação)
-  Future<Map<String, dynamic>> getSales({required String token}) async {
+  //  Buscar APENAS os pedidos do usuário logado 
+  Future<Map<String, dynamic>> getMyOrders({required String token}) async {
     try {
-      // Faz a requisição GET para buscar o histórico de vendas do usuário
       final response = await dio.get(
-        baseUrl,
-        // Inclui o token no cabeçalho
+        '$baseUrl/my-orders', // Rota específica do usuário
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
-      // Mapeia a lista de Maps (JSON) recebida para uma lista de objetos SaleModel
       final sales = (response.data as List<dynamic>)
           .map((e) => SaleModel.fromJson(e))
           .toList();
 
-      return {
-        'success': true,
-        'data': sales,
-      }; // Retorna a lista de objetos SaleModel
+      return {'success': true, 'data': sales};
     } on DioException catch (e) {
-      final err = e.response?.data;
-      // Trata erros de requisição, retornando a mensagem de erro do servidor
       return {
         'success': false,
-        'error': err != null
-            ? (err['error'] ?? err['message'] ?? err)
-            : 'Erro ao carregar histórico',
+        'error': e.response?.data ?? 'Erro ao carregar seus pedidos',
+      };
+    }
+  }
+
+  // Buscar TODAS as vendas 
+  Future<Map<String, dynamic>> getAllSales({required String token}) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/', // Rota raiz do recurso sales
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      final sales = (response.data as List<dynamic>)
+          .map((e) => SaleModel.fromJson(e))
+          .toList();
+
+      return {'success': true, 'data': sales};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': e.response?.data ?? 'Erro ao carregar vendas gerais',
+      };
+    }
+  }
+
+  // Buscar status do último pedido ativo 
+  Future<Map<String, dynamic>> getLastOrderStatus({
+    required String token,
+  }) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/last-order-status',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': e.response?.data ?? 'Erro ao buscar pedido ativo',
+      };
+    }
+  }
+
+  // Buscar detalhes de uma venda específica por ID 
+  Future<Map<String, dynamic>> getSaleById({
+    required String token,
+    required String id,
+  }) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/$id',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'error': e.response?.data ?? 'Erro ao buscar pedido',
       };
     }
   }

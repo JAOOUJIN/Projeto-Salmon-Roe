@@ -15,7 +15,7 @@ exports.createSale = async (req, res) => {
       vl_venda += product.vl_produto * itens[i].qt_item;
     });
 
-    const newSale = new Sale({ cd_venda, vl_venda, itens });
+    const newSale = new Sale({ cd_venda, vl_venda, itens, user_id: req.user._id });
     await newSale.save();
     res.status(201).json({ message: 'Venda criada!', sale: newSale });
   } catch (error) {
@@ -26,7 +26,7 @@ exports.createSale = async (req, res) => {
 // Listar vendas (para dashboard)
 exports.getSales = async (req, res) => {
   try {
-    const sales = await Sale.find().populate('itens.cd_produto');  
+    const sales = await Sale.find().populate('itens.cd_produto');
     res.json(sales);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar vendas.' });
@@ -41,5 +41,35 @@ exports.getSaleById = async (req, res) => {
     res.json(sale);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao buscar venda.' });
+  }
+};
+
+// Buscar pedidos do usuário logado (Histórico)
+exports.getMyOrders = async (req, res) => {
+  try {
+
+    const orders = await Sale.find({ user_id: req.user.id })
+      .populate('itens.cd_produto')
+      .sort({ createdAt: -1 }); 
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao carregar histórico.' });
+  }
+};
+
+// Buscar status do último pedido
+exports.getLastOrderStatus = async (req, res) => {
+  try {
+    const lastOrder = await Sale.findOne({ user_id: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('itens.cd_produto');
+
+    if (!lastOrder) {
+      return res.status(404).json({ message: 'Nenhum pedido encontrado' });
+    }
+    res.json(lastOrder);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar pedido ativo.' });
   }
 };
