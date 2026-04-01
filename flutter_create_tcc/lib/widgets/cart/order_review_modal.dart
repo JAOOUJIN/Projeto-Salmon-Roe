@@ -34,6 +34,9 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
     final result = await widget.cartProvider.createSale(
       widget.authProvider.token!,
       saleCode,
+      address: widget.address,
+      delivery: widget.delivery,
+      payment: widget.payment,
     );
     setState(() => _isLoading = false);
 

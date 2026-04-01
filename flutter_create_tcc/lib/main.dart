@@ -17,7 +17,6 @@ import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
 import 'package:flutter_create_tcc/screens/home/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
-import 'package:flutter_create_tcc/screens/profile/payments_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
@@ -26,7 +25,6 @@ import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
 import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
-
 
 // Ponto de entrada da aplicação
 void main() {
@@ -37,7 +35,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AddressProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => OrdersProvider()), 
+        ChangeNotifierProvider(create: (_) => OrdersProvider()),
       ],
       child: const MyApp(),
     ),
@@ -66,16 +64,17 @@ class MyApp extends StatelessWidget {
         '/search': (context) => const SearchScreen(),
         '/notifications': (context) => const NotificationsScreen(),
         '/accountData': (context) => const AccountDataScreen(),
-        '/payments': (context) => const PaymentsScreen(),
         '/configuration': (context) => const ConfigurationScreen(),
         '/personalInfo': (context) => const PersonalInfoScreen(),
         '/accessInfo': (context) => const AccessInfoScreen(),
         '/forgetPassword': (context) => const ForgetPasswordScreen(),
         '/addresses': (context) => const AddressScreen(),
         '/addAddress': (context) => const AddAddressScreen(),
-        '/editAddress': (context) => EditAddressScreen(address: ModalRoute.of(context)!.settings.arguments as AddressModel),
+        '/editAddress': (context) => EditAddressScreen(
+          address: ModalRoute.of(context)!.settings.arguments as AddressModel,
+        ),
         '/cart': (context) => const CartScreen(),
-        '/verifyOtp': (context) => const VerifyOtpScreen(email: ''), 
+        '/verifyOtp': (context) => const VerifyOtpScreen(email: ''),
       },
     );
   }

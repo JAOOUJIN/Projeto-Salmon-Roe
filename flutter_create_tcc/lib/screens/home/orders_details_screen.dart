@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/sale_model.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../widgets/orders/order_details_widgets.dart';
+import '../../widgets/orders/order_utils.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   final SaleModel order;
@@ -32,7 +34,7 @@ class OrderDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // CABEÇALHO COM LOGO E NOME 
+            // CABEÇALHO (LOGO E NOME)
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -40,10 +42,10 @@ class OrderDetailsScreen extends StatelessWidget {
                   Container(
                     width: 50,
                     height: 50,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.black,
                       shape: BoxShape.circle,
-                      image: const DecorationImage(
+                      image: DecorationImage(
                         image: AssetImage('assets/images/logo2.png'),
                         fit: BoxFit.contain,
                       ),
@@ -77,7 +79,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            //  STATUS E HORÁRIO 
+            // STATUS E HORÁRIO 
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -95,21 +97,20 @@ class OrderDetailsScreen extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        Icons.check_circle,
-                        color: _getStatusColor(order.status),
+                        OrderUtils.getStatusIcon(order.status),
+                        color: OrderUtils.getStatusColor(order.status),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _translateStatus(order.status),
+                        OrderUtils.translateStatus(order.status),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: _getStatusColor(order.status),
+                          color: OrderUtils.getStatusColor(order.status),
                         ),
                       ),
                       const Spacer(),
-                      // Horário da conclusão 
                       Text(
                         "${order.date.hour}:${order.date.minute.toString().padLeft(2, '0')}",
                         style: const TextStyle(
@@ -125,7 +126,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            // ITENS COM IMAGEM 
+            // LISTA DE ITENS
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -172,7 +173,9 @@ class OrderDetailsScreen extends StatelessWidget {
                               style: const TextStyle(fontSize: 15),
                             ),
                           ),
-                          if (item.productImageUrl != null)
+                          // Tratamento de imagem para evitar erro de URL vazia
+                          if (item.productImageUrl != null &&
+                              item.productImageUrl!.isNotEmpty)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Image.network(
@@ -180,6 +183,10 @@ class OrderDetailsScreen extends StatelessWidget {
                                 width: 45,
                                 height: 45,
                                 fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.fastfood,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                         ],
@@ -196,18 +203,25 @@ class OrderDetailsScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _infoSection(
-                    icon: Icons.location_on_outlined,
-                    title: "Endereço de entrega",
-                    content: w
-                  ),
-                  const SizedBox(height: 20),
-                  _infoSection(
-                    icon: FontAwesomeIcons.creditCard,
-                    title: "Forma de pagamento",
-                    content: "Pagar quando chegar",
+                  Builder(
+                    builder: (context) {
+                      return Column(
+                        children: [
+                          InfoSection(
+                            icon: Icons.location_on_outlined,
+                            title: "Endereço de entrega",
+                            content: order.address,
+                          ),
+                          const SizedBox(height: 20),
+                          InfoSection(
+                            icon: FontAwesomeIcons.creditCard,
+                            title: "Forma de pagamento",
+                            content: order.payment,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -215,21 +229,26 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            // --- 5. RESUMO DE VALORES ---
+            // RESUMO DE VALORES 
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  _buildSummaryRow(
-                    "Subtotal",
-                    "R\$ ${order.totalValue.toStringAsFixed(2).replaceAll('.', ',')}",
+                  SummaryRow(
+                    title: "Subtotal",
+                    value:
+                        "R\$ ${order.totalValue.toStringAsFixed(2).replaceAll('.', ',')}",
+                  ),
+                  const SummaryRow(
+                    title: "Taxa de entrega",
+                    value: "Grátis",
+                    isGreen: true,
                   ),
                   const SizedBox(height: 8),
-                  _buildSummaryRow("Taxa de entrega", "Grátis", isGreen: true),
-                  const SizedBox(height: 15),
-                  _buildSummaryRow(
-                    "Total",
-                    "R\$ ${order.totalValue.toStringAsFixed(2).replaceAll('.', ',')}",
+                  SummaryRow(
+                    title: "Total",
+                    value:
+                        "R\$ ${order.totalValue.toStringAsFixed(2).replaceAll('.', ',')}",
                     isBold: true,
                   ),
                 ],
@@ -240,89 +259,5 @@ class OrderDetailsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // --- WIDGETS AUXILIARES ---
-
-  Widget _infoSection({
-    required IconData icon,
-    required String title,
-    required String content,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                content,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryRow(
-    String title,
-    String value, {
-    bool isBold = false,
-    bool isGreen = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 16 : 14,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isGreen ? Colors.green : Colors.black,
-            fontSize: isBold ? 16 : 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    if (status == 'delivered') return Colors.green;
-    if (status == 'cancelled') return Colors.red;
-    return const Color(0xFFFF4C4C);
-  }
-
-  String _translateStatus(String status) {
-    switch (status) {
-      case 'delivered':
-        return 'Pedido concluído';
-      case 'cancelled':
-        return 'Pedido cancelado';
-      case 'on_the_way':
-        return 'A caminho';
-      case 'shipped':
-        return 'Em preparo';
-      default:
-        return 'Em andamento';
-    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/sale_model.dart';
 import 'order_widgets.dart';
+import 'order_utils.dart';
 
 class ActiveOrderCard extends StatefulWidget {
   final SaleModel order;
@@ -31,34 +32,7 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
     super.dispose();
   }
 
-  IconData _getStatusIcon(String status) {
-    switch (status) {
-      case 'confirmed':
-        return Icons.receipt_long;
-      case 'shipped':
-        return Icons.restaurant;
-      case 'on_the_way':
-        return Icons.delivery_dining;
-      default:
-        return Icons.access_time;
-    }
-  }
-
-  String _getStatusMessage(String status) {
-    switch (status) {
-      case 'pending':
-        return 'Aguardando confirmação';
-      case 'confirmed':
-        return 'Pedido confirmado';
-      case 'shipped':
-        return 'Em preparo';
-      case 'on_the_way':
-        return 'A caminho';
-      default:
-        return 'Em andamento';
-    }
-  }
-
+  // Função para mapear status para progresso (0.0 a 1.0)
   double _getProgress(String status) {
     switch (status) {
       case 'pending':
@@ -66,9 +40,11 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
       case 'confirmed':
         return 0.4;
       case 'shipped':
-        return 0.7;
+        return 0.6;
       case 'on_the_way':
-        return 0.9;
+        return 0.8;
+      case 'delivered':
+        return 1.0;
       default:
         return 0.1;
     }
@@ -86,9 +62,9 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: const Color(0xFFFF4C4C),
+                backgroundColor: OrderUtils.getStatusColor(widget.order.status),
                 child: Icon(
-                  _getStatusIcon(widget.order.status),
+                  OrderUtils.getStatusIcon(widget.order.status),
                   color: Colors.white,
                   size: 18,
                 ),
@@ -104,7 +80,7 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _getStatusMessage(widget.order.status),
+                      OrderUtils.translateStatus(widget.order.status),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -113,7 +89,6 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
                   ],
                 ),
               ),
-              // 🔥 DATA NO LUGAR DA SETINHA
               Text(
                 "${widget.order.date.day.toString().padLeft(2, '0')}/${widget.order.date.month.toString().padLeft(2, '0')}",
                 style: TextStyle(color: Colors.grey[500], fontSize: 12),
@@ -121,7 +96,6 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
             ],
           ),
           const SizedBox(height: 16),
-          // 🔥 BARRA ANIMADA MELHORADA
           _buildAnimatedProgress(_getProgress(widget.order.status)),
         ],
       ),
@@ -135,24 +109,23 @@ class _ActiveOrderCardState extends State<ActiveOrderCard>
           borderRadius: BorderRadius.circular(10),
           child: Stack(
             children: [
-              // Fundo Cinza
               Container(
                 height: 8,
                 width: double.infinity,
                 color: Colors.grey[200],
               ),
-              // Barra de Progresso (Cor Base)
               FractionallySizedBox(
                 widthFactor: progress,
-                child: Container(height: 8, color: const Color(0xFFFF4C4C)),
+                child: Container(
+                  height: 8,
+                  color: OrderUtils.getStatusColor(widget.order.status),
+                ),
               ),
-              // 🔥 CAMADA DE BRILHO ANIMADA (SHIMMER)
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
                   return FractionallySizedBox(
-                    widthFactor:
-                        progress, // O brilho só passa na parte preenchida
+                    widthFactor: progress,
                     child: SizedBox(
                       height: 8,
                       child: ShaderMask(

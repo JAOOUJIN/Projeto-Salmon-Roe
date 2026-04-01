@@ -16,7 +16,10 @@ class SaleServices {
     required String token, // Token de autenticação do usuário
     required int saleCode,
     required List<SaleItem>
-    items, // Lista de itens a serem vendidos (modelos Dart)
+    items,
+    required String address,
+    required String delivery,
+    required String payment,
   }) async {
     try {
       // Faz a requisição POST para criar a venda
@@ -26,6 +29,9 @@ class SaleServices {
           'cd_venda': saleCode,
           // Mapeia a lista de objetos SaleItem (Dart) para uma lista de Maps (JSON) para envio
           'itens': items.map((e) => e.toJson()).toList(),
+          'address': address,
+          'delivery': delivery,
+          'payment': payment,
         },
         // Inclui o token no cabeçalho 'Authorization' para autenticar a requisição
         options: Options(headers: {'Authorization': 'Bearer $token'}),

@@ -96,21 +96,9 @@ class LoggedInView extends StatelessWidget {
               ),
 
               ProfileMenuItem(
-                icon: Icons.credit_card_outlined,
-                title: "Pagamentos",
-                onTap: () => Navigator.pushNamed(context, '/payments'),
-              ),
-
-              const Divider(
-                height: 1,
-                thickness: 0.5,
-                color: Color(0xFFE0E0E0),
-              ),
-
-              ProfileMenuItem(
                 icon: Icons.history_rounded,
                 title: "Histórico de Pedidos",
-                onTap: () => Navigator.pushNamed(context, '/orderHistory'),
+                onTap: () => Navigator.pushNamed(context, '/clientOrders'),
               ),
 
               const Divider(

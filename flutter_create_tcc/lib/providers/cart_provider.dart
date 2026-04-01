@@ -129,7 +129,7 @@ class CartProvider with ChangeNotifier {
   }
 
   // Cria uma venda no backend
-  Future<Map<String, dynamic>> createSale(String token, int saleCode) async {
+  Future<Map<String, dynamic>> createSale(String token, int saleCode, {required String address, required String delivery, required String payment}) async {
     if (_items.isEmpty) {
       return {'success': false, 'error': 'Carrinho vazio.'};
     }
@@ -152,6 +152,9 @@ class CartProvider with ChangeNotifier {
         token: token, // Requer o token de autenticação para criar a venda
         saleCode: saleCode,
         items: saleItems,
+        address: address,
+        delivery: delivery,
+        payment: payment,
       );
 
       if (result['success'] == true) {

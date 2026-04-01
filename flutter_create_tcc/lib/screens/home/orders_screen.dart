@@ -31,7 +31,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
       await ordersProvider.fetchOrders(auth.token!);
       await ordersProvider.fetchLastOrderStatus(auth.token!);
     }
+    
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +116,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
     );
   }
+  
 
   void _navigateToDetails(SaleModel order) {
     Navigator.push(

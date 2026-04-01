@@ -6,8 +6,8 @@
 class SaleItem {
   final String productId;
   final int quantity;
-  final String? productName; 
-  final String? productImageUrl; 
+  final String? productName;
+  final String? productImageUrl;
 
   SaleItem({
     required this.productId,
@@ -52,11 +52,14 @@ class SaleItem {
 // --- Modelo Principal da Venda ---
 class SaleModel {
   // Atributos principais que definem a transação de venda
-  final int saleCode; 
+  final int saleCode;
   final double totalValue;
   final DateTime date;
   final String status;
   final List<SaleItem> items; // Lista de todos os itens vendidos.
+  final String address; // Endereço de entrega
+  final String delivery; // Método de entrega
+  final String payment; // Método de pagamento
 
   SaleModel({
     required this.saleCode,
@@ -64,6 +67,9 @@ class SaleModel {
     required this.date,
     required this.status,
     required this.items,
+    required this.address,
+    required this.delivery,
+    required this.payment,
   });
 
   // Constrói um objeto SaleModel a partir dos dados (Map/JSON) recebidos do servidor
@@ -85,6 +91,9 @@ class SaleModel {
       items: (json['itens'] as List<dynamic>? ?? [])
           .map((item) => SaleItem.fromJson(item))
           .toList(),
+      address: json['address'] ?? '',
+      delivery: json['delivery'] ?? '',
+      payment: json['payment'] ?? '',
     );
   }
 }
