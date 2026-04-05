@@ -7,7 +7,7 @@ import '../utils/config.dart';
 
 // Serviços de autenticação
 class AuthServices {
-  final Dio dio = Dio();
+  final Dio dio = Dio()..interceptors.add(LogInterceptor(responseBody: true, requestBody: true,logPrint: (obj) => print("DIO_DEBUG: $obj")));
   // Monta a URL base para todas as chamadas de autenticação
   final String baseUrl = "${Config.baseUrl}/auth";
 
@@ -20,7 +20,7 @@ class AuthServices {
     try {
       // Faz a requisição POST para o endpoint /register
       final response = await dio.post(
-        '$baseUrl/register',
+        '$baseUrl/user/register',
         data: {'email': email, 'password': password, 'phone': phone},
       );
       // Retorno de sucesso: inclui os dados da resposta do servidor
@@ -70,28 +70,42 @@ class AuthServices {
     }
   }
 
-  // REDEFINIR SENHA - envia nova senha junto com OTP para redefinir a senha do usuário
+  // REDEFINIR SENHA
   Future<Map<String, dynamic>> resetPassword(
-  String email,
-  String otp,
-  String newPassword,
-) async {
-  try {
-    final response = await dio.post(
-      '$baseUrl/reset-password',
-      data: {
-        'email': email,
-        'otp': otp,
-        'newPassword': newPassword,
-      },
-    );
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    try {
+      // DEBUG: Veja no console se os dados estão corretos antes de enviar
+      print("Enviando Reset: Email: $email, OTP: $otp, Pass: $newPassword");
 
-    return {'success': true, 'data': response.data};
-  } on DioException catch (e) {
-    return {
-      'success': false,
-      'error': e.response?.data['error'] ?? 'Erro ao redefinir senha',
-    };
+      final response = await dio.post(
+        '$baseUrl/reset-password',
+        data: {
+          'email': email,
+          'otp': otp, // Garanta que no Go você mudou para "otp"
+          'newPassword':
+              newPassword, // CamelCase com 'P' maiúsculo conforme o Go
+        },
+      );
+
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      // DEBUG: Imprime o erro real do servidor no console do Flutter
+      print("Erro no Reset: ${e.response?.data}");
+
+      String errorMsg = 'Erro ao redefinir senha';
+
+      if (e.response?.data != null && e.response?.data is Map) {
+        // Tenta pegar a mensagem de erro que vem do Go
+        errorMsg =
+            e.response?.data['error'] ??
+            e.response?.data['message'] ??
+            errorMsg;
+      }
+
+      return {'success': false, 'error': errorMsg};
+    }
   }
-}
 }

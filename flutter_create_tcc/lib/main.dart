@@ -74,7 +74,12 @@ class MyApp extends StatelessWidget {
           address: ModalRoute.of(context)!.settings.arguments as AddressModel,
         ),
         '/cart': (context) => const CartScreen(),
-        '/verifyOtp': (context) => const VerifyOtpScreen(email: ''),
+        '/verifyOtp': (context) {
+          final emailArgument =
+              ModalRoute.of(context)!.settings.arguments as String;
+
+          return VerifyOtpScreen(email: emailArgument);
+        },
       },
     );
   }
