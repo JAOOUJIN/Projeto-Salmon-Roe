@@ -13,7 +13,7 @@ class ProductProvider extends ChangeNotifier {
   // Lista principal que armazena todos os produtos carregados
   List<ProductModel> products = [];
 
-  // Indica o estado atual de carregamento 
+  // Indica o estado atual de carregamento
   bool isLoading = false;
 
   // Filtros de categoria e busca (state interno do provider)
@@ -44,6 +44,8 @@ class ProductProvider extends ChangeNotifier {
   // Getter filtrado combinado (categoria + busca)
   List<ProductModel> get filteredProducts {
     return products.where((product) {
+      if (!product.isActive) return false; // Exclui produtos inativos
+
       // Filtro por categoria (se selecionada)
       final matchesCategory =
           _selectedCategory == null ||
@@ -85,8 +87,9 @@ class ProductProvider extends ChangeNotifier {
 
   // Getter filtrado: Retorna apenas os produtos destacados (featured), baseado na propriedade do modelo
   List<ProductModel> get featured =>
-      products.where((p) => p.isFeatured).toList();
+      products.where((p) => p.isActive && p.isFeatured).toList();
 
   // Getter filtrado: Retorna apenas os produtos novos (new)
-  List<ProductModel> get newProducts => products.where((p) => p.isNew).toList();
+  List<ProductModel> get newProducts =>
+      products.where((p) => p.isActive && p.isNew).toList();
 }

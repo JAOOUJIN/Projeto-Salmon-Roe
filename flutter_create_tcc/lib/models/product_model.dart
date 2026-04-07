@@ -15,6 +15,7 @@ class ProductModel {
   final double oldPrice;
   final bool isFeatured;
   final bool isNew;
+  final bool isActive;
   final ProductCategory category;
 
   // Construtor principal para inicialização de todos os atributos obrigatórios
@@ -27,6 +28,7 @@ class ProductModel {
     required this.oldPrice,
     required this.isFeatured,
     required this.isNew,
+    required this.isActive,
     required this.category,
   });
 
@@ -46,6 +48,7 @@ class ProductModel {
       isFeatured: json['is_destaque'] ?? false,
       isNew: json['is_novo'] ?? false,
       category: ProductCategoryExtension.fromString(json['categoria'] ?? 'temakis'), 
+      isActive: json['status_ativo'] ?? true, 
     );
   }
 
@@ -62,6 +65,7 @@ class ProductModel {
       'vl_antigo': oldPrice,
       'is_destaque': isFeatured,
       'is_novo': isNew,
+      'status_ativo': isActive,
       'categoria': category.name, 
     };
   }
