@@ -144,6 +144,7 @@ class CartProvider with ChangeNotifier {
             (item) => SaleItem(
               productId: item['product'].id.toString(),
               quantity: item['quantity'],
+              unitPrice: item['product'].price,
             ),
           )
           .toList();

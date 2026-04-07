@@ -7,7 +7,7 @@ import '../utils/config.dart';
 import '../models/sale_model.dart';
 
 class SaleServices {
-  final Dio dio = Dio();
+  final Dio dio = Dio()..interceptors.add(LogInterceptor(responseBody: true, requestBody: true,logPrint: (obj) => print("DIO_DEBUG: $obj")));
   final String baseUrl =
       "${Config.baseUrl}/sales"; // Endereço base para as rotas de venda
 

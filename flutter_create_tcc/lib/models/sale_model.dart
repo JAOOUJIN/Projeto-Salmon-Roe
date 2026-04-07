@@ -6,19 +6,21 @@
 class SaleItem {
   final String productId;
   final int quantity;
+  final double? unitPrice; 
   final String? productName;
   final String? productImageUrl;
 
   SaleItem({
     required this.productId,
     required this.quantity,
+    this.unitPrice,
     this.productName,
     this.productImageUrl,
   });
 
   // Prepara o item para ser enviado à API (POST /sales)
   Map<String, dynamic> toJson() {
-    return {'cd_produto': productId, 'qt_item': quantity};
+    return {'cd_produto': productId, 'qt_item': quantity, 'vl_unitario': unitPrice};
   }
 
   // Constrói o item a partir do JSON recebido do Backend Node (com populate)
@@ -43,6 +45,7 @@ class SaleItem {
     return SaleItem(
       productId: id,
       quantity: (item['qt_item'] ?? 0).toInt(),
+      unitPrice: (item['vl_unitario'] ?? 0).toDouble(),
       productName: name,
       productImageUrl: imageUrl,
     );
