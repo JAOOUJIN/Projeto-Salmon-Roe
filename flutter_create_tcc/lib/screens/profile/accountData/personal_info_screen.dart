@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import '/../../../widgets/profile/app_mask.dart';
 import '../../../providers/auth_provider.dart';
 
 // Tela para editar informações pessoais: nome e CPF
@@ -15,6 +15,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
+  final _cpfFormatter = AppMasks.cpfMask;
 
   bool _isLoading = false;
   bool _cpfLocked = false;
@@ -28,37 +29,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     // Preenche os campos com os dados atuais
     _nameController.text = user?.name ?? '';
     if (user?.cpf != null && user!.cpf!.isNotEmpty) {
-      _cpfController.text = cpfMask.maskText(user.cpf!);
+      _cpfController.text = _cpfFormatter.maskText(user.cpf!);
     }
     _cpfLocked = _cpfController.text.isNotEmpty;
-  }
-
-  final cpfMask = MaskTextInputFormatter(
-    mask: '###.###.###-##',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-
-  bool _isValidCPF(String cpf) {
-    // Remove tudo que não for número
-    cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (cpf.length != 11) return false;
-    if (RegExp(r'^(\d)\1*$').hasMatch(cpf)) return false; // Evita repetidos
-
-    // Validação oficial dos dígitos verificadores
-    int calcDigit(String cpf, int length) {
-      int sum = 0;
-      for (int i = 0; i < length; i++) {
-        sum += int.parse(cpf[i]) * (length + 1 - i);
-      }
-      int mod = sum % 11;
-      return mod < 2 ? 0 : 11 - mod;
-    }
-
-    int d1 = calcDigit(cpf, 9);
-    int d2 = calcDigit(cpf, 10);
-
-    return d1 == int.parse(cpf[9]) && d2 == int.parse(cpf[10]);
   }
 
   // Função para salvar as alterações
@@ -69,13 +42,14 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
     setState(() => _isLoading = true);
 
-    final cpf = (!_cpfLocked && _cpfController.text.trim().isNotEmpty)
-        ? _cpfController.text.trim()
+    final String? cpfToSend =
+        !_cpfLocked && _cpfController.text.trim().isNotEmpty
+        ? _cpfFormatter.getUnmaskedText()
         : null;
 
     final result = await authProvider.updateUserData(
       name: _nameController.text.trim(),
-      cpf: cpf,
+      cpf: cpfToSend,
     );
 
     setState(() => _isLoading = false);
@@ -83,9 +57,14 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      if (cpfToSend != null) {
+        setState(() => _cpfLocked = true);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Informações atualizadas com sucesso!'),
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -93,6 +72,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['error'] ?? 'Erro ao atualizar informações.'),
+          backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -138,7 +118,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               TextFormField(
                 controller: _cpfController,
                 readOnly: _cpfLocked,
-                inputFormatters: [cpfMask],
+                inputFormatters: [_cpfFormatter],
                 decoration: InputDecoration(
                   labelText: 'CPF',
                   prefixIcon: const Icon(Icons.badge_outlined),
@@ -171,15 +151,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (_cpfLocked) return null;
+                  if (value == null || value.isEmpty) return null;
 
-                  if (value == null || value.trim().isEmpty) {
-                    return null;
-                  }
-
-                  if (!_isValidCPF(value.trim())) {
+                  if (!AppMasks.isValidCPF(value)) {
                     return 'CPF inválido.';
                   }
-
                   return null;
                 },
               ),

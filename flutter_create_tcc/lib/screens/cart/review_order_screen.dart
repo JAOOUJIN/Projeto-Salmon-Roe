@@ -24,6 +24,26 @@ class ReviewOrderScreen extends StatefulWidget {
 class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   String selectedPayment = "Pagar quando chegar";
 
+  // Lógica para decidir o que fazer quando o usuário clicar no botão de finalizar pedido
+  void _handleFinalizeStep() {
+    if (selectedPayment == "Pix") {
+      // Redireciona para a tela de pagamento Pix
+      // Passa os dados necessários como argumentos para a próxima tela
+      Navigator.pushNamed(
+        context,
+        '/pixPayment',
+        arguments: {
+          'address': widget.address,
+          'delivery': widget.delivery,
+          'payment': selectedPayment,
+        },
+      );
+    } else {
+      // Se for pagamento na entrega abre o modal de revisão do pedido
+      _showReviewModal();
+    }
+  }
+
   void _showReviewModal() {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -34,8 +54,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return OrderReviewModal(
-          address:
-              "${widget.address.street}, ${widget.address.number}", 
+          address: "${widget.address.street}, ${widget.address.number}",
           delivery: widget.delivery,
           payment: selectedPayment,
           cartProvider: cartProvider,
@@ -66,12 +85,20 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const PaymentSection(),
+            PaymentSection(
+              selectedPayment: selectedPayment,
+              onPaymentSelected: (value) {
+                setState(() {
+                  selectedPayment = value;
+                });
+              },
+            ),
             const SizedBox(height: 24),
             OrderSummarySection(cartProvider: cartProvider),
             const Spacer(),
             ElevatedButton(
-              onPressed: _showReviewModal,
+              onPressed:
+                  _handleFinalizeStep, 
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF4C4C),
                 minimumSize: const Size(double.infinity, 52),
@@ -81,9 +108,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 elevation: 4,
                 shadowColor: Colors.black26,
               ),
-              child: const Text(
-                "Revisar Pedido",
-                style: TextStyle(
+              child: Text(
+                selectedPayment == "Pix"
+                    ? "Ir para o Pagamento"
+                    : "Revisar Pedido",
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.white,
                   fontWeight: FontWeight.w600,

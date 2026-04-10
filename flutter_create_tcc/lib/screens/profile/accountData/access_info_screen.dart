@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../widgets/profile/app_mask.dart';
 
 // Tela de Informações de Acesso
 class AccessInfoScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final _phoneFormatter = AppMasks.phoneMask;
 
   bool _isLoading = false;
 
@@ -31,11 +33,17 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
   @override
   void initState() {
     super.initState();
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
 
-    _emailController.text = user?.email ?? '';
-    _phoneController.text = user?.phone ?? '';
+      if (user != null) {
+        setState(() {
+          _emailController.text = user.email;
+          _phoneController.text = _phoneFormatter.maskText(user.phone ?? '');
+        });
+      }
+    });
   }
 
   // Função para salvar as alterações
@@ -43,13 +51,20 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final cleanPhone = _phoneFormatter.getUnmaskedText();
 
     setState(() => _isLoading = true);
 
+    // Capturamos os valores e limpamos espaços
+    final String phone = cleanPhone.trim();
+    final String currentPw = _currentPasswordController.text.trim();
+    final String newPw = _newPasswordController.text.trim();
+
+    // Chamamos o provider passando null para senhas vazias
     final result = await authProvider.updateAccessInfo(
-      currentPassword: _currentPasswordController.text.trim(),
-      newPassword: _newPasswordController.text.trim(),
-      phone: _phoneController.text.trim(),
+      phone: phone,
+      currentPassword: currentPw.isEmpty ? null : currentPw,
+      newPassword: newPw.isEmpty ? null : newPw,
     );
 
     setState(() => _isLoading = false);
@@ -57,9 +72,15 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      // Limpamos os campos de senha após o sucesso por segurança
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Informações atualizadas com sucesso!'),
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -67,6 +88,7 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['error'] ?? 'Erro ao atualizar informações.'),
+          backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -107,6 +129,7 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
               // TELEFONE
               TextFormField(
                 controller: _phoneController,
+                inputFormatters: [_phoneFormatter],
                 decoration: const InputDecoration(
                   labelText: 'Telefone (DDD + número)',
                   prefixIcon: Icon(Icons.phone_android),

@@ -212,30 +212,29 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success'] == true) {
-        final responseData = result['data'] as Map<String, dynamic>?;
-        final data =
-            (responseData?['data'] ?? responseData) as Map<String, dynamic>?;
+        // O backend pode retornar os dados atualizados do usuário (incluindo o telefone novo) ou apenas uma mensagem de sucesso
+        final data = result['data'] as Map<String, dynamic>;
 
-        if (data != null && data['user'] != null) {
-          final updatedUser = data['user'] as Map<String, dynamic>;
-          _user = UserModel.fromJson(updatedUser);
+        // Verifica se a resposta contém os campos esperados para atualizar o modelo local
+        if (data.containsKey('id') || data.containsKey('email')) {
+          // Atualiza o modelo local com o novo JSON recebido do Go
+          _user = UserModel.fromJson(data);
 
+          // Persiste a atualização localmente (SharedPreferences)
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user', jsonEncode(_user!.toJson()));
 
           notifyListeners();
           return {
             'success': true,
-            'data': {'user': updatedUser},
+            'data': {'user': data},
           };
         } else {
-          return {'success': false, 'error': 'Resposta do servidor inválida.'};
+          return {'success': false, 'error': 'Formato de resposta inesperado.'};
         }
       } else {
-        return {
-          'success': false,
-          'error': result['error'] ?? 'Erro desconhecido.',
-        };
+        notifyListeners();
+        return result;
       }
     } catch (e) {
       _isLoading = false;

@@ -14,6 +14,7 @@ import 'package:flutter_create_tcc/screens/login/verify_otp_screen.dart';
 import 'package:flutter_create_tcc/screens/home/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
 import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
+import 'package:flutter_create_tcc/screens/cart/pix_payment_screen.dart';
 import 'package:flutter_create_tcc/screens/home/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
           address: ModalRoute.of(context)!.settings.arguments as AddressModel,
         ),
         '/cart': (context) => const CartScreen(),
+        '/pixPayment': (context) => const PixPaymentScreen(),
         '/verifyOtp': (context) {
           final emailArgument =
               ModalRoute.of(context)!.settings.arguments as String;
