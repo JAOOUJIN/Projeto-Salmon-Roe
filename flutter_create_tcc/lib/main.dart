@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'providers/address_provider.dart';
 import 'providers/auth_provider.dart';
@@ -28,7 +29,14 @@ import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.d
 import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
 
 // Ponto de entrada da aplicação
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   runApp(
     MultiProvider(
       providers: [
