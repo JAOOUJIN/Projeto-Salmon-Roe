@@ -1,0 +1,329 @@
+package handlers
+
+import (
+	erro "backend-app/internal/errors"
+	"backend-app/internal/models"
+	repo "backend-app/internal/repositories"
+	"backend-app/internal/utils"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type SalesController struct {
+	salesRepo   repo.SalesRepositoryInterface
+	productRepo repo.ProductRepositoryInterface
+}
+
+type SalesControllerInterface interface {
+	GetSalesRoutes(rGroup *gin.RouterGroup)
+}
+
+func NewSalesController(salesRepo repo.SalesRepositoryInterface, productRepo repo.ProductRepositoryInterface) *SalesController {
+	return &SalesController{
+		salesRepo:   salesRepo,
+		productRepo: productRepo,
+	}
+}
+
+func (s *SalesController) GetSalesRoutes(routerGroup *gin.RouterGroup) {
+	routerGroup.POST(utils.CreateSaleURL, s.CreateSale)
+	routerGroup.GET(utils.GetAllSalesURL, s.GetSales)
+	routerGroup.GET(utils.GetSaleByIdURL, s.GetSaleById)
+	routerGroup.GET(utils.GetUserSalesURL, s.GetUserSales)
+	routerGroup.GET(utils.GetLastOrderStatusURL, s.GetLastOrderStatus)
+}
+
+func (s *SalesController) CreateSale(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+	log.Debug("criando nova venda", utils.Function, utils.FnCallerName())
+
+	var req models.CreateSaleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error("erro ao validar requisição", utils.Function, utils.FnCallerName(), "error", err.Error())
+		erro.HandleError(c, erro.ErrInvalidParams)
+		return
+	}
+
+	// Buscar produtos e validar existência
+	var totalVenda float64
+	var salesItems []models.SalesItem
+
+	for _, itemReq := range req.Itens {
+		productID, err := primitive.ObjectIDFromHex(itemReq.ProductID)
+		if err != nil {
+			log.Error("ID de produto inválido", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("ID de produto inválido: %s", itemReq.ProductID),
+			})
+			return
+		}
+
+		product, err := s.productRepo.FindByID(c, productID)
+		if err != nil {
+			log.Error("erro ao buscar produto", utils.Function, utils.FnCallerName(), "error", err.Error())
+			erro.HandleError(c, erro.ErrInternalServer)
+			return
+		}
+
+		if product == nil {
+			log.Error("produto não encontrado", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Produto %s não encontrado", itemReq.ProductID),
+			})
+			return
+		}
+
+		totalVenda += product.ProductPrice * itemReq.Quantity
+
+		salesItems = append(salesItems, models.SalesItem{
+			ProductID: productID,
+			Quantity:  itemReq.Quantity,
+			UnitPrice: product.ProductPrice,
+		})
+	}
+
+	var userID primitive.ObjectID
+	if userIdStr, exists := c.Get("userId"); exists {
+		if userIdStr != nil {
+			userID, _ = primitive.ObjectIDFromHex(userIdStr.(string))
+		}
+	}
+
+	newSale := &models.Sales{
+		UserID:     userID,
+		SalesID:    req.SalesID,
+		SalesValue: totalVenda,
+		Status:     utils.StatusPending,
+		Itens:      salesItems,
+		Address:    req.Address,
+		Delivery:   req.Delivery,
+		Payment:    req.Payment,
+	}
+
+	if err := s.salesRepo.Create(c, newSale); err != nil {
+		log.Error("erro ao criar venda", utils.Function, utils.FnCallerName(), "error", err.Error())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+
+	log.Debug("venda criada com sucesso", utils.Function, utils.FnCallerName(), "saleId", newSale.ID.Hex())
+
+	saleDTO := s.populateProducts(c, *newSale)
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Venda criada!",
+		"sale":    saleDTO,
+	})
+}
+
+func (s *SalesController) GetSales(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+	log.Debug("buscando lista de todas as vendas", utils.Function, utils.FnCallerName())
+
+	sales, errDB := s.salesRepo.FindAll(c)
+	if errDB != nil {
+		log.Error(erro.ErrSqlException.Error(), utils.Function, utils.FnCallerName())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+
+	if len(sales) <= 0 {
+		erro.HandleError(c, erro.ErrEmptyResult)
+		c.JSON(http.StatusNoContent, []models.SalesDTO{})
+		return
+	}
+
+	salesDTO := make([]models.SalesDTO, 0, len(sales))
+	for _, sale := range sales {
+		populatedSale := s.populateProducts(c, sale)
+		salesDTO = append(salesDTO, populatedSale)
+	}
+
+	c.JSON(http.StatusOK, salesDTO)
+}
+
+func (s *SalesController) GetSaleById(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+
+	idParam := c.Param("id")
+	saleID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		log.Error("ID de venda inválido", utils.Function, utils.FnCallerName(), "id", idParam)
+		erro.HandleError(c, erro.ErrInvalidParams)
+		return
+	}
+
+	log.Debug("buscando venda por ID", utils.Function, utils.FnCallerName(), "saleId", idParam)
+
+	sale, errDB := s.salesRepo.FindByID(c, saleID)
+	if errDB != nil {
+		log.Error(erro.ErrSqlException.Error(), utils.Function, utils.FnCallerName())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+
+	if sale == nil {
+		log.Error("venda não encontrada", utils.Function, utils.FnCallerName(), "saleId", idParam)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Venda não encontrada.",
+		})
+		return
+	}
+
+	populatedSale := s.populateProducts(c, *sale)
+	c.JSON(http.StatusOK, populatedSale)
+}
+
+// populateProducts busca os produtos e popula os dados completos
+func (s *SalesController) populateProducts(c *gin.Context, sale models.Sales) models.SalesDTO {
+	itemsDTO := make([]models.SalesItemDTO, 0, len(sale.Itens))
+
+	for _, item := range sale.Itens {
+		product, err := s.productRepo.FindByID(c, item.ProductID)
+		if err != nil || product == nil {
+			// Se não encontrar o produto, ainda retorna o item sem dados do produto
+			itemsDTO = append(itemsDTO, models.SalesItemDTO{
+				ProductID: item.ProductID.Hex(),
+				Quantity:  item.Quantity,
+				UnitPrice: item.UnitPrice,
+			})
+			continue
+		}
+
+		itemsDTO = append(itemsDTO, models.SalesItemDTO{
+			ProductID: item.ProductID.Hex(),
+			Quantity:  item.Quantity,
+			Product: models.ProductDTO{
+				ID:                 product.ID,
+				NameProduct:        product.NameProduct,
+				ProductDescription: product.ProductDescription,
+				ProductPrice:       item.UnitPrice,
+				OldProductPrice:    product.OldProductPrice,
+				IsHighlighted:      product.IsHighlighted,
+				IsNew:              product.IsNew,
+				ProductImageUrl:    product.ProductImageUrl,
+			},
+		})
+	}
+
+	saleDTO := models.SalesDTO{
+		ID:         sale.ID.Hex(),
+		SalesID:    sale.SalesID,
+		SalesValue: sale.SalesValue,
+		Status:     sale.Status,
+		Itens:      itemsDTO,
+		CreatedAt:  sale.CreatedAt,
+		UpdatedAt:  sale.UpdatedAt,
+		Address:    sale.Address,
+		Delivery:   sale.Delivery,
+		Payment:    sale.Payment,
+	}
+
+	if !sale.UserID.IsZero() {
+		saleDTO.UserID = sale.UserID.Hex()
+	}
+
+	return saleDTO
+}
+
+// GetUserSales lista todos os pedidos do usuário autenticado
+func (s *SalesController) GetUserSales(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+
+	userIdStr, exists := c.Get("userId")
+	if !exists || userIdStr == nil {
+		log.Error("usuário não autenticado", utils.Function, utils.FnCallerName())
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Usuário não autenticado",
+		})
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(userIdStr.(string))
+	if err != nil {
+		log.Error("ID de usuário inválido", utils.Function, utils.FnCallerName(), "userId", userIdStr)
+		erro.HandleError(c, erro.ErrInvalidParams)
+		return
+	}
+
+	log.Debug("buscando pedidos do usuário", utils.Function, utils.FnCallerName(), "userId", userID.Hex())
+
+	sales, errDB := s.salesRepo.FindByUserID(c, userID)
+	if errDB != nil {
+		log.Error(erro.ErrSqlException.Error(), utils.Function, utils.FnCallerName(), "error", errDB.Error())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+
+	if len(sales) <= 0 {
+		erro.HandleError(c, erro.ErrEmptyResult)
+		c.JSON(http.StatusNoContent, []models.SalesDTO{})
+		return
+	}
+
+	salesDTO := make([]models.SalesDTO, 0, len(sales))
+	for _, sale := range sales {
+		populatedSale := s.populateProducts(c, sale)
+		salesDTO = append(salesDTO, populatedSale)
+	}
+
+	c.JSON(http.StatusOK, salesDTO)
+}
+
+// GetLastOrderStatus retorna o status do último pedido feito pelo usuário autenticado
+func (s *SalesController) GetLastOrderStatus(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+
+	userIdStr, exists := c.Get("userId")
+	if !exists || userIdStr == nil {
+		log.Error("usuário não autenticado", utils.Function, utils.FnCallerName())
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Usuário não autenticado",
+		})
+		return
+	}
+
+	userID, err := primitive.ObjectIDFromHex(userIdStr.(string))
+	if err != nil {
+		log.Error("ID de usuário inválido", utils.Function, utils.FnCallerName(), "userId", userIdStr)
+		erro.HandleError(c, erro.ErrInvalidParams)
+		return
+	}
+
+	log.Debug("buscando último pedido do usuário", utils.Function, utils.FnCallerName(), "userId", userID.Hex())
+
+	lastSale, errDB := s.salesRepo.FindLastByUserID(c, userID)
+	if errDB != nil {
+		log.Error(erro.ErrSqlException.Error(), utils.Function, utils.FnCallerName(), "error", errDB.Error())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+
+	if lastSale == nil {
+		log.Debug("nenhum pedido encontrado para o usuário", utils.Function, utils.FnCallerName(), "userId", userID.Hex())
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Nenhum pedido encontrado",
+			"message": "Você ainda não possui pedidos cadastrados",
+		})
+		return
+	}
+
+	populatedSale := s.populateProducts(c, *lastSale)
+
+	statusDTO := models.OrderStatusDTO{
+		ID:         populatedSale.ID,
+		Status:     populatedSale.Status,
+		SalesValue: populatedSale.SalesValue,
+		SalesID:    populatedSale.SalesID,
+		CreatedAt:  populatedSale.CreatedAt,
+		UpdatedAt:  populatedSale.UpdatedAt,
+		Itens:      populatedSale.Itens,
+		Address:    populatedSale.Address,
+		Delivery:   populatedSale.Delivery,
+		Payment:    populatedSale.Payment,
+	}
+
+	c.JSON(http.StatusOK, statusDTO)
+}
