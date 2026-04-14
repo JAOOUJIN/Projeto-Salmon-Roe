@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/sale_model.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../widgets/orders/order_details_widgets.dart';
 import '../../widgets/orders/order_utils.dart';
 
@@ -79,7 +78,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            // STATUS E HORÁRIO 
+            // STATUS E HORÁRIO
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -145,7 +144,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: order.items.length,
-                    separatorBuilder: (_, __) => const Divider(height: 30),
+                    separatorBuilder: (_, _) => const Divider(height: 30),
                     itemBuilder: (context, index) {
                       final item = order.items[index];
                       return Row(
@@ -183,7 +182,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                 width: 45,
                                 height: 45,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
+                                errorBuilder: (_, _, _) => const Icon(
                                   Icons.fastfood,
                                   color: Colors.grey,
                                 ),
@@ -199,7 +198,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            // ENTREGA E PAGAMENTO 
+            // ENTREGA E PAGAMENTO
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -215,7 +214,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           InfoSection(
-                            icon: FontAwesomeIcons.creditCard,
+                            icon: Icons.payment,
                             title: "Forma de pagamento",
                             content: order.payment,
                           ),
@@ -229,7 +228,7 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
 
-            // RESUMO DE VALORES 
+            // RESUMO DE VALORES
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(

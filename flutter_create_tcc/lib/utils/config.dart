@@ -7,7 +7,7 @@ class Config {
       return "https://projeto-salmon-roe.onrender.com/v1/api/salmon_roe";
     } else {
       // Debug: o IP local da máquina
-      return "http://192.168.15.3:8080/v1/api/salmon_roe";
+      return "http://192.168.15.4:8080/v1/api/salmon_roe";
     }
   }
 }

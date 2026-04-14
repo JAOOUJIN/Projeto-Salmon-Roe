@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../../screens/profile/notifications_screen.dart';
 
 class NotificationIcon extends StatefulWidget {
   final int notificationCount;
 
-  const NotificationIcon({
-    super.key,
-    this.notificationCount = 0, 
-  });
+  const NotificationIcon({super.key, this.notificationCount = 0});
 
   @override
   State<NotificationIcon> createState() => _NotificationIconState();
@@ -45,6 +44,9 @@ class _NotificationIconState extends State<NotificationIcon>
 
   @override
   Widget build(BuildContext context) {
+    final notificationProvider = context.watch<NotificationProvider>();
+    final count = notificationProvider.unreadCount;
+
     return GestureDetector(
       onTapDown: (_) => _controller.reverse(),
       onTapUp: (_) {
@@ -58,30 +60,35 @@ class _NotificationIconState extends State<NotificationIcon>
           alignment: Alignment.topRight,
           children: [
             const Padding(
-              padding: EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: 8, top: 8),
               child: Icon(
-                Icons.notifications_none,
+                Icons.notifications_none_outlined,
                 color: Colors.black,
                 size: 28,
               ),
             ),
-            if (widget.notificationCount > 0)
+            if (count > 0)
               Positioned(
                 right: 2,
                 top: 2,
                 child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(
-                    color: Colors.redAccent,
+                    color: Color(0xFFFF4C4C),
                     shape: BoxShape.circle,
                   ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
                   child: Text(
-                    widget.notificationCount.toString(),
+                    count > 9 ? '9+' : count.toString(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),

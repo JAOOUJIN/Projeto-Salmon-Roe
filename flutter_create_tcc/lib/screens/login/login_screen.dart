@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/auth_background.dart';
 import 'registration_screen.dart';
@@ -36,6 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final notificationProvider = Provider.of<NotificationProvider>(
+      context,
+      listen: false,
+    );
 
     setState(() {
       authProvider.isLoading;
@@ -45,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await authProvider.login(
         _loginIdController.text.trim(),
         _passwordController.text.trim(),
+        notificationProvider,
       );
 
       if (!mounted) return;

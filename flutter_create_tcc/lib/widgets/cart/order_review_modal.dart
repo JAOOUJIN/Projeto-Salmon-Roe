@@ -29,8 +29,11 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
   bool _isLoading = false;
 
   Future<void> _createSale() async {
+    final double valorTotalDoPedido = widget.cartProvider.totalPrice;
+
     setState(() => _isLoading = true);
     final saleCode = DateTime.now().millisecondsSinceEpoch;
+
     final result = await widget.cartProvider.createSale(
       widget.authProvider.token!,
       saleCode,
@@ -38,21 +41,34 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
       delivery: widget.delivery,
       payment: widget.payment,
     );
-    setState(() => _isLoading = false);
 
+    setState(() => _isLoading = false);
     if (!mounted) return;
 
     if (result['success'] == true) {
-      
-      final ordersProvider = context.read<OrdersProvider>();
-      ordersProvider.fetchOrders(widget.authProvider.token!);
-      ordersProvider.fetchLastOrderStatus(widget.authProvider.token!);
+      context.read<OrdersProvider>().fetchOrders(widget.authProvider.token!);
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pedido realizado com sucesso!")),
-      );
-      Navigator.popUntil(context, ModalRoute.withName('/menuClient'));
+      if (widget.payment == "Pix") {
+        // Se for Pix, fecha o modal e vai para a tela de pagamento
+        Navigator.pop(context); 
+        Navigator.pushReplacementNamed(
+          context,
+          '/pixPayment',
+          arguments: {
+            'address': widget.address,
+            'delivery': widget.delivery,
+            'pix_data': result['data'], 
+            'total_price': valorTotalDoPedido,
+          },
+        );
+      } else {
+        // Se for pagamento na entrega, fluxo normal
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Pedido realizado!")));
+        Navigator.popUntil(context, ModalRoute.withName('/menuClient'));
+      }
     } else {
       ScaffoldMessenger.of(
         context,
@@ -200,7 +216,7 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
   }
 
   Widget _infoRow({
-    required IconData icon,
+    required dynamic icon,
     required String title,
     required String subtitle,
     required Color iconColor,
@@ -213,7 +229,9 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
             color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: iconColor),
+          child: icon is IconData
+              ? Icon(icon, color: iconColor)
+              : FaIcon(icon as FaIconData, color: iconColor, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(

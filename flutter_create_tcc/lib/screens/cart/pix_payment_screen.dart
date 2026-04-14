@@ -2,10 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
-// Importe seus caminhos corretos aqui
-import '../../providers/cart_provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart'; 
 
 class PixPaymentScreen extends StatefulWidget {
   const PixPaymentScreen({super.key});
@@ -15,56 +12,14 @@ class PixPaymentScreen extends StatefulWidget {
 }
 
 class _PixPaymentScreenState extends State<PixPaymentScreen> {
-  // O pixCode virá do resultado da chamada da API (CartProvider.createSale)
   String? _pixCode;
-  bool _isOrderCreated = false;
-
   Timer? _timer;
-  int _secondsRemaining = 600; // 10 minutos
+  int _secondsRemaining = 600; 
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _processPixOrder();
-    });
-  }
-
-  // Função que chama o backend para gerar o código Pix
-  Future<void> _processPixOrder() async {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final auth = context.read<AuthProvider>();
-    final cart = context.read<CartProvider>();
-
-    // Simulando o código da venda (Time-based)
-    final saleCode = DateTime.now().millisecondsSinceEpoch;
-
-    final result = await cart.createSale(
-      auth.token!,
-      saleCode,
-      address: args['address'].toString(),
-      delivery: args['delivery'],
-      payment: "Pix",
-    );
-
-    if (result['success'] == true) {
-      setState(() {
-        // O backend deve retornar o código Pix no campo 'pix_copia_e_cola' 
-        _pixCode =
-            result['data']['pix_copia_e_cola'] ??
-            "00020101021226850014br.gov.bcb.pix...";
-        _isOrderCreated = true;
-      });
-      _startTimer();
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao gerar Pix: ${result['error']}")),
-        );
-        Navigator.pop(context);
-      }
-    }
+    _startTimer();
   }
 
   void _startTimer() {
@@ -75,6 +30,45 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
         setState(() {
           _secondsRemaining--;
         });
+      }
+    });
+  }
+
+  // Função para mostrar o sucesso e redirecionar
+  void _showSuccessAnimation() {
+    _timer?.cancel(); 
+
+    // Limpa o ID confirmado no provider para não repetir a animação
+    context.read<AuthProvider>().clearLastConfirmedSale();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 80),
+            SizedBox(height: 20),
+            Text(
+              "Pagamento Confirmado!",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              "Seu pedido já está sendo preparado pelo Salmon Roe.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.popUntil(context, ModalRoute.withName('/menuClient'));
       }
     });
   }
@@ -95,7 +89,27 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = context.watch<CartProvider>();
+    // Recebendo os dados passados pelo Modal
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+        print("ARGUMENTOS RECEBIDOS: $args");
+        
+    final pixData = args['pix_data'];
+    final currentSaleId = pixData['saleId']?.toString();
+    _pixCode = pixData['pix_copia_e_cola'] ?? "Código não disponível";
+
+    final double totalPrice = args['total_price'] ?? 0.0;
+
+    final auth = context.watch<AuthProvider>();
+
+    // Verifica se o pagamento foi confirmado pelo WebSocket
+    if (auth.lastConfirmedSaleId != null &&
+        auth.lastConfirmedSaleId == currentSaleId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showSuccessAnimation();
+      });
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -117,121 +131,100 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
               Navigator.popUntil(context, ModalRoute.withName('/menuClient')),
         ),
       ),
-      body: !_isOrderCreated
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF4C4C)),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Icon(Icons.pix, size: 80, color: Color(0xFF32BCAD)),
+            const SizedBox(height: 24),
+
+            const Text(
+              "Aguardando pagamento",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Total a pagar: R\$ ${totalPrice.toStringAsFixed(2)}",
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+            ),
+            const SizedBox(height: 32),
+
+            const Text(
+              "Copie o código abaixo e utilize o aplicativo do seu banco para finalizar o pagamento.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+
+            Text(
+              "O código expira em: ${_formatTime(_secondsRemaining)}",
+              style: const TextStyle(
+                color: Color(0xFFFF4C4C),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
                 children: [
-                  // QR CODE PLACEHOLDER
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.qr_code_2,
-                          size: 200,
-                          color: Colors.black87,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Total a pagar: R\$ ${cart.totalPrice.toStringAsFixed(2)}",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  const Text(
-                    "Aguardando pagamento",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                  Expanded(
                     child: Text(
-                      "Utilize o QR Code acima ou o código abaixo para pagar.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-
-                  // Timer regressivo
-                  Text(
-                    "Expira em: ${_formatTime(_secondsRemaining)}",
-                    style: const TextStyle(
-                      color: Color(0xFFFF4C4C),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Bloco Copia e Cola
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.pix,
-                          color: Color(0xFF32BCAD),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _pixCode!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.copy, color: Colors.grey),
-                          onPressed: _copyToClipboard,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // Botão de Finalizar
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: _copyToClipboard,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF4C4C),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        "COPIAR CÓDIGO PIX",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      _pixCode!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.copy, color: Colors.grey),
+                    onPressed: _copyToClipboard,
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(height: 40),
+
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _copyToClipboard,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF4C4C),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  "COPIAR CÓDIGO PIX",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Assim que o pagamento for confirmado, esta tela será atualizada automaticamente.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

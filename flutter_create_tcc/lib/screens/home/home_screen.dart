@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: const [
             Padding(
               padding: EdgeInsets.only(right: 16),
-              child: NotificationIcon(notificationCount: 3),
+              child: NotificationIcon(), 
             ),
           ],
         ),

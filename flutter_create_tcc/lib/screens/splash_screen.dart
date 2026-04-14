@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,11 +19,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final notificationProvider = Provider.of<NotificationProvider>(
+      context,
+      listen: false,
+    );
 
-    // Simula uma espera para carregar recursos 
+    // Simula uma espera para carregar recursos
     await Future.delayed(const Duration(seconds: 5));
 
-    final success = await auth.tryAutoLogin();
+    final success = await auth.tryAutoLogin(notificationProvider);
 
     if (!mounted) return;
 
@@ -43,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Colors.orange,
+            color: Color(0xFFE15B1D),
           ),
         ),
       ),

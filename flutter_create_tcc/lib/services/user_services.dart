@@ -29,7 +29,7 @@ class UserServices {
         '$baseUrl/update-info',
         data: {
           // Inclui o campo 'name' no corpo da requisição APENAS se o valor não for nulo (if condicional)
-          if (name != null) 'name': name, if (cpf != null) 'cpf': cpf,
+          'name': ?name, 'cpf': ?cpf,
         },
         // Autentica a requisição usando o token no cabeçalho
         options: Options(headers: {'Authorization': 'Bearer $token'}),
@@ -60,9 +60,9 @@ class UserServices {
         '$baseUrl/update-access',
         data: {
           // Inclui os campos no corpo da requisição APENAS se o valor não for nulo
-          if (phone != null) 'phone': phone,
-          if (currentPassword != null) 'currentPassword': currentPassword,
-          if (newPassword != null) 'newPassword': newPassword,
+          'phone': ?phone,
+          'currentPassword': ?currentPassword,
+          'newPassword': ?newPassword,
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );

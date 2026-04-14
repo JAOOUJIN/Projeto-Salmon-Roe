@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'providers/address_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/orders_provider.dart';
+import 'providers/notification_provider.dart';
 import 'package:flutter_create_tcc/models/address_model.dart';
 import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login/login_screen.dart';
@@ -28,9 +32,20 @@ import 'package:flutter_create_tcc/screens/profile/address/add_address_screen.da
 import 'package:flutter_create_tcc/screens/profile/address/edit_address_screen.dart';
 import 'package:flutter_create_tcc/screens/cart/cart_screen.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Inicializa o Firebase para esse processo isolado
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Notificação em Background: ${message.data}");
+}
+
 // Ponto de entrada da aplicação
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -45,6 +60,7 @@ void main() async{
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

@@ -52,7 +52,7 @@ class CartItemsList extends StatelessWidget {
                   width: 65,
                   height: 65,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       const Icon(Icons.image_not_supported_outlined, size: 40),
                 ),
               ),

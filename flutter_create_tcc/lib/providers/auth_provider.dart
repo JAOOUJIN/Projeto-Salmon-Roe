@@ -8,10 +8,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/auth_services.dart';
 import '../services/user_services.dart';
+import '../services/notification_services.dart';
+import '../services/websocket_service.dart';
+import '../providers/notification_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthServices _authService = AuthServices();
   final UserServices _userService = UserServices();
+  final NotificationServices _notificationService = NotificationServices();
+  final WebSocketService _webSocketService = WebSocketService();
+
   // Dados de estado da aplicação (usuário, token de autenticação e indicador de carregamento)
   UserModel? _user;
   String? _token;
@@ -24,8 +30,20 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _user != null && _token != null;
   bool get isLoading => _isLoading;
 
+  String? _lastConfirmedSaleId;
+  String? get lastConfirmedSaleId => _lastConfirmedSaleId;
+
+  // Método para resetar após a animação (importante!)
+  void clearLastConfirmedSale() {
+    _lastConfirmedSaleId = null;
+  }
+
   // LOGIN
-  Future<Map<String, dynamic>> login(String loginId, String password) async {
+  Future<Map<String, dynamic>> login(
+    String loginId,
+    String password,
+    NotificationProvider notificationProvider,
+  ) async {
     _isLoading = true;
     notifyListeners(); // 1. Inicia carregamento e notifica UI
 
@@ -50,6 +68,26 @@ class AuthProvider with ChangeNotifier {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', _token!);
           await prefs.setString('user', jsonEncode(_user!.toJson()));
+
+          await _notificationService.inicializarNotificacoes(_token);
+
+          // Configura o ouvinte de notificações para atualizar a UI em tempo real quando uma nova notificação chegar
+          notificationProvider.configurarOuvinte();
+
+          _webSocketService.conectar(_token!, (data) {
+            print("Mensagem em tempo real recebida: $data");
+
+            if (data['type'] == 'payment_confirmed') {
+              // Guarda o ID da venda que foi paga para exibir a animação de confirmação na tela de PIX
+              _lastConfirmedSaleId = data['saleId']?.toString();
+              print(
+                "O pagamento do pedido $_lastConfirmedSaleId foi confirmado!",
+              );
+
+              // Notifica os ouvintes (incluindo a tela de PIX)
+              notifyListeners();
+            }
+          });
 
           notifyListeners(); // 3. Notifica a UI sobre a autenticação bem-sucedida
           return {
@@ -97,11 +135,14 @@ class AuthProvider with ChangeNotifier {
     _token = null;
     _user = null;
 
+    _webSocketService
+        .desconectar(); // Encerra a conexão WebSocket ao fazer logout
+
     notifyListeners(); // 3. Notifica a UI sobre o logout
   }
 
   // AUTO LOGIN
-  Future<bool> tryAutoLogin() async {
+  Future<bool> tryAutoLogin(NotificationProvider notificationProvider) async {
     final prefs = await SharedPreferences.getInstance();
 
     final storedToken = prefs.getString('token');
@@ -118,6 +159,24 @@ class AuthProvider with ChangeNotifier {
       ); // 2. Decodifica os dados armazenados.
       _token = storedToken;
       _user = UserModel.fromJson(userData); // 3. Reconstrói o objeto UserModel
+
+      await _notificationService.inicializarNotificacoes(_token);
+
+      notificationProvider.configurarOuvinte();
+
+      _webSocketService.conectar(_token!, (data) {
+        print("Mensagem em tempo real recebida: $data");
+
+        if (data['type'] == 'payment_confirmed') {
+          // Guarda o ID da venda que foi paga para exibir a animação de confirmação na tela de PIX
+          _lastConfirmedSaleId = data['saleId']?.toString();
+          print("O pagamento do pedido $_lastConfirmedSaleId foi confirmado!");
+
+          // Notifica os ouvintes (incluindo a tela de PIX)
+          notifyListeners();
+        }
+      });
+
       notifyListeners();
       return true;
     } catch (e) {
