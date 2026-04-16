@@ -14,6 +14,7 @@ type (
 		PasswordHash           string             `bson:"password,omitempty" json:"-"`
 		CreatedAt              time.Time          `bson:"createdAt" json:"createdAt"`
 		Phone                  string             `bson:"phone" json:"phone"`
+		FcmTokens              []string           `bson:"fcmTokens,omitempty" json:"-"`
 		CPF                    string             `bson:"cpf,omitempty" json:"cpf,omitempty"`
 		PasswordResetCodeHash  string             `bson:"passwordResetCodeHash,omitempty" json:"-"`
 		PasswordResetExpiresAt *time.Time         `bson:"passwordResetExpiresAt,omitempty" json:"-"`
@@ -52,6 +53,10 @@ type (
 		PasswordHash    string             `bson:"password,omitempty" json:"currentPassword"`
 		PasswordHashNew string             `bson:"password,omitempty" json:"newPassword"`
 		UpdatedAt       time.Time          `json:"-" bson:"updatedAt, omitempty"`
+	}
+
+	RegisterFCMTokenBody struct {
+		Token string `json:"token" binding:"required"`
 	}
 )
 

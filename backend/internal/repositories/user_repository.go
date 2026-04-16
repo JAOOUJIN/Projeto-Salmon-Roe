@@ -34,6 +34,8 @@ type UserRepositoryInterface interface {
 	SetPasswordResetToken(ctx context.Context, userID primitive.ObjectID, codeHash string, expiresAt time.Time) error
 	ClearPasswordResetFields(ctx context.Context, userID primitive.ObjectID) error
 	UpdatePasswordClearReset(ctx context.Context, userID primitive.ObjectID, passwordHash string) error
+	GetFCMTokens(ctx context.Context, userID primitive.ObjectID) ([]string, error)
+	AddFCMToken(ctx context.Context, userID primitive.ObjectID, token string) error
 }
 
 func NewUserRepository(dbName string) *UserRepository {
@@ -298,4 +300,37 @@ func (r *UserRepository) UpdatePasswordClearReset(ctx context.Context, userID pr
 		},
 	})
 	return err
+}
+
+func (r *UserRepository) GetFCMTokens(ctx context.Context, userID primitive.ObjectID) ([]string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var doc struct {
+		Tokens []string `bson:"fcmTokens"`
+	}
+	err := r.coll.FindOne(ctx, bson.M{"_id": userID}, options.FindOne().SetProjection(bson.M{"fcmTokens": 1})).Decode(&doc)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return doc.Tokens, nil
+}
+
+func (r *UserRepository) AddFCMToken(ctx context.Context, userID primitive.ObjectID, token string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	res, err := r.coll.UpdateOne(ctx, bson.M{"_id": userID}, bson.M{
+		"$addToSet": bson.M{"fcmTokens": token},
+	})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }

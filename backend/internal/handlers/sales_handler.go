@@ -3,10 +3,14 @@ package handlers
 import (
 	erro "backend-app/internal/errors"
 	"backend-app/internal/models"
+	"backend-app/internal/notify"
 	repo "backend-app/internal/repositories"
 	"backend-app/internal/utils"
+	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,16 +19,18 @@ import (
 type SalesController struct {
 	salesRepo   repo.SalesRepositoryInterface
 	productRepo repo.ProductRepositoryInterface
+	notifier    notify.OrderStatusNotifier
 }
 
 type SalesControllerInterface interface {
 	GetSalesRoutes(rGroup *gin.RouterGroup)
 }
 
-func NewSalesController(salesRepo repo.SalesRepositoryInterface, productRepo repo.ProductRepositoryInterface) *SalesController {
+func NewSalesController(salesRepo repo.SalesRepositoryInterface, productRepo repo.ProductRepositoryInterface, n notify.OrderStatusNotifier) *SalesController {
 	return &SalesController{
 		salesRepo:   salesRepo,
 		productRepo: productRepo,
+		notifier:    n,
 	}
 }
 
@@ -34,6 +40,7 @@ func (s *SalesController) GetSalesRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.GET(utils.GetSaleByIdURL, s.GetSaleById)
 	routerGroup.GET(utils.GetUserSalesURL, s.GetUserSales)
 	routerGroup.GET(utils.GetLastOrderStatusURL, s.GetLastOrderStatus)
+	routerGroup.PUT(utils.UpdateSaleStatusURL, s.UpdateSaleStatus)
 }
 
 func (s *SalesController) CreateSale(c *gin.Context) {
@@ -326,4 +333,59 @@ func (s *SalesController) GetLastOrderStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, statusDTO)
+}
+
+// UpdateSaleStatus atualiza o status da venda e notifica o cliente (WebSocket + FCM).
+// Opcional: ORDER_STATUS_UPDATE_SECRET — se definido, exige header X-Order-Status-Secret com o mesmo valor (painel/admin).
+func (s *SalesController) UpdateSaleStatus(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+
+	if secret := os.Getenv("ORDER_STATUS_UPDATE_SECRET"); secret != "" {
+		if c.GetHeader("X-Order-Status-Secret") != secret {
+			c.JSON(http.StatusForbidden, gin.H{"error": "não autorizado a atualizar status"})
+			return
+		}
+	}
+
+	idParam := c.Param("id")
+	saleID, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		log.Error("ID de venda inválido", utils.Function, utils.FnCallerName(), "id", idParam)
+		erro.HandleError(c, erro.ErrInvalidParams)
+		return
+	}
+
+	var req models.UpdateSaleStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if !utils.IsValidSaleStatus(req.Status) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "status inválido"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+
+	sale, errDB := s.salesRepo.UpdateStatus(ctx, saleID, req.Status)
+	if errDB != nil {
+		log.Error("erro ao atualizar status", utils.Function, utils.FnCallerName(), "error", errDB.Error())
+		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+	if sale == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Venda não encontrada"})
+		return
+	}
+
+	if s.notifier != nil && !sale.UserID.IsZero() {
+		s.notifier.NotifyOrderStatus(ctx, sale.UserID, sale.ID, sale.SalesID, sale.Status)
+	}
+
+	populated := s.populateProducts(c, *sale)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Status atualizado",
+		"sale":    populated,
+	})
 }

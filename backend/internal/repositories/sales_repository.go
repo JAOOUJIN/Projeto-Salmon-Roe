@@ -24,6 +24,7 @@ type SalesRepositoryInterface interface {
 	FindByID(ctx context.Context, id primitive.ObjectID) (*models.Sales, error)
 	FindByUserID(ctx context.Context, userID primitive.ObjectID) ([]models.Sales, error)
 	FindLastByUserID(ctx context.Context, userID primitive.ObjectID) (*models.Sales, error)
+	UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) (*models.Sales, error)
 }
 
 func NewSalesRepository(collectionName string) SalesRepositoryInterface {
@@ -35,10 +36,10 @@ func NewSalesRepository(collectionName string) SalesRepositoryInterface {
 func (s *SalesRepository) Create(ctx context.Context, sale *models.Sales) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-
+	now := time.Now().UTC()
 	sale.ID = primitive.NilObjectID
-	sale.CreatedAt = time.Now().UTC()
-	sale.UpdatedAt = time.Now().UTC()
+	sale.CreatedAt = now
+	sale.UpdatedAt = now
 	if sale.Status == utils.EmptyString {
 		sale.Status = utils.StatusPending
 	}
@@ -123,6 +124,26 @@ func (s *SalesRepository) FindLastByUserID(ctx context.Context, userID primitive
 		SetSort(bson.M{"createdAt": -1}) // Ordena por data de criação descendente (mais recente primeiro)
 
 	err := s.collection.FindOne(ctx, bson.M{"user_id": userID}, opts).Decode(&sale)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &sale, nil
+}
+
+func (s *SalesRepository) UpdateStatus(ctx context.Context, id primitive.ObjectID, status string) (*models.Sales, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	now := time.Now().UTC()
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"status": status, "updatedAt": now}}
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+
+	var sale models.Sales
+	err := s.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&sale)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil

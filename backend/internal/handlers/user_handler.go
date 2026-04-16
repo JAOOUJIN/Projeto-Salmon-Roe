@@ -6,12 +6,14 @@ import (
 	repo "backend-app/internal/repositories"
 	"backend-app/internal/utils"
 	"context"
+	stderrors "errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,12 +32,44 @@ func NewUserController(service repo.UserRepositoryInterface) *UserController {
 func (p *UserController) GetUsersRoutes(routerGroup *gin.RouterGroup) {
 	routerGroup.PUT(utils.UserUpdateAccessURL, p.UpdateAccess)
 	routerGroup.PUT(utils.UserUpdateInfoURL, p.UpdateInfo)
+	routerGroup.PUT(utils.UserFCMTokenURL, p.RegisterFCMToken)
 	// Address routes
 	routerGroup.GET(utils.AddressGroup, p.GetAllAddressUser)
 	routerGroup.POST(utils.AddressRegisterURL, p.RegisterAddressUser)
 	routerGroup.PUT(utils.AddressUpdateURL, p.UpdateAddressUser)
 	routerGroup.DELETE(utils.AddressDeleteURL, p.DeleteAddressUser)
 	routerGroup.PUT(utils.AddressRegisterDefaultURL, p.RegisterAddressDefaultUser)
+}
+
+func (p *UserController) RegisterFCMToken(c *gin.Context) {
+	log := utils.LoggerFromContext(c.Request.Context())
+
+	objID, err := primitive.ObjectIDFromHex(GetUserID(c))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidParams)
+		return
+	}
+
+	var body models.RegisterFCMTokenBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	log.Debug("registrando token FCM", utils.Function, utils.FnCallerName())
+	if err := p.repo.AddFCMToken(ctx, objID, body.Token); err != nil {
+		if stderrors.Is(err, mongo.ErrNoDocuments) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao salvar token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Token registrado"})
 }
 
 func (p *UserController) UpdateInfo(c *gin.Context) {

@@ -28,6 +28,7 @@ class NotificationServices {
     if (jwt != null) {
       String? token = await _fcm.getToken();
       if (token != null) {
+        print("✅DIO_DEBUG: Token: $token");
         await registrarTokenNoBackend(jwt, token);
       }
     }

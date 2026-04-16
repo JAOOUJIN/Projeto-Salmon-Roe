@@ -1,5 +1,7 @@
 package utils
 
+import "slices"
+
 // URLS
 const (
 	//group
@@ -15,6 +17,8 @@ const (
 	UserRegisterURL     = UserGroup + "/register"
 	UserUpdateInfoURL   = UserGroup + "/update-info"
 	UserUpdateAccessURL = UserGroup + "/update-access"
+	UserFCMTokenURL     = UserGroup + "/fcm-token"
+	UserWebSocketURL    = UserGroup + "/ws"
 
 	//address
 	AddressGroup              = UserGroup + "/address"
@@ -34,6 +38,7 @@ const (
 	GetSaleByIdURL        = SalesGroup + "/:id"
 	GetUserSalesURL       = SalesGroup + "/my-orders"
 	GetLastOrderStatusURL = SalesGroup + "/last-order-status"
+	UpdateSaleStatusURL   = SalesGroup + "/:id/status"
 )
 
 const (
@@ -51,3 +56,17 @@ const (
 	StatusDelivered = "delivered"
 	StatusCancelled = "cancelled"
 )
+
+// ValidSaleStatuses lista os status aceitos para pedidos (vendas).
+var ValidSaleStatuses = []string{
+	StatusPending,
+	StatusConfirmed,
+	StatusShipped,
+	StatusOnTheWay,
+	StatusDelivered,
+	StatusCancelled,
+}
+
+func IsValidSaleStatus(s string) bool {
+	return slices.Contains(ValidSaleStatuses, s)
+}

@@ -61,6 +61,10 @@ type CreateSaleItemRequest struct {
 	UnitPrice float64 `json:"vl_unitario" binding:"required"`
 }
 
+type UpdateSaleStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}
+
 type OrderStatusDTO struct {
 	ID         string         `json:"id"`
 	Status     string         `json:"status"`
