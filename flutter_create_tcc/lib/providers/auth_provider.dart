@@ -89,6 +89,17 @@ class AuthProvider with ChangeNotifier {
               // Notifica os ouvintes (incluindo a tela de PIX)
               notifyListeners();
             }
+
+            if (data['type'] == 'order_status') {
+              print(
+                "AUTH_PROVIDER: Status de pedido recebido, notificando ouvintes...",
+              );
+
+              ordersProvider.fetchOrders(_token!);
+              ordersProvider.fetchLastOrderStatus(_token!);
+
+              notifyListeners();
+            }
           });
 
           notifyListeners(); // 3. Notifica a UI sobre a autenticação bem-sucedida
@@ -144,7 +155,10 @@ class AuthProvider with ChangeNotifier {
   }
 
   // AUTO LOGIN
-  Future<bool> tryAutoLogin(NotificationProvider notificationProvider, OrdersProvider ordersProvider) async {
+  Future<bool> tryAutoLogin(
+    NotificationProvider notificationProvider,
+    OrdersProvider ordersProvider,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
 
     final storedToken = prefs.getString('token');
@@ -176,6 +190,16 @@ class AuthProvider with ChangeNotifier {
 
           // Notifica os ouvintes (incluindo a tela de PIX)
           notifyListeners();
+        }
+
+        if (data['type'] == 'order_status') {
+          print(
+            "AUTH_PROVIDER: Status de pedido recebido, notificando ouvintes...",
+          );
+          ordersProvider.fetchOrders(_token!);
+          ordersProvider.fetchLastOrderStatus(_token!);
+
+          notifyListeners(); // Isso avisa que algo mudou
         }
       });
 

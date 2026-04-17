@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 
 class Config {
   static String get baseUrl {
+    // Forçando o Render mesmo em Debug para o seu teste
+    return "https://projeto-salmon-roe.onrender.com/v1/api/salmon_roe";
+
+    /* Comente o resto por enquanto
     if (kReleaseMode) {
-      // URL de produção no Render
       return "https://projeto-salmon-roe.onrender.com/v1/api/salmon_roe";
     } else {
-      // Debug: o IP local da máquina
       return "http://192.168.15.4:8080/v1/api/salmon_roe";
     }
+    */
   }
 }
 // Para desenvolvimento, force o IP da máquina
