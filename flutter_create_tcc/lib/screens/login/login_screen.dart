@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/orders_provider.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/auth_background.dart';
 import 'registration_screen.dart';
@@ -41,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       listen: false,
     );
+    final ordersProvider = Provider.of<OrdersProvider>(context, listen: false);
 
     setState(() {
       authProvider.isLoading;
@@ -51,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _loginIdController.text.trim(),
         _passwordController.text.trim(),
         notificationProvider,
+        ordersProvider,
       );
 
       if (!mounted) return;

@@ -11,6 +11,7 @@ import '../services/user_services.dart';
 import '../services/notification_services.dart';
 import '../services/websocket_service.dart';
 import '../providers/notification_provider.dart';
+import '../providers/orders_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthServices _authService = AuthServices();
@@ -43,6 +44,7 @@ class AuthProvider with ChangeNotifier {
     String loginId,
     String password,
     NotificationProvider notificationProvider,
+    OrdersProvider ordersProvider,
   ) async {
     _isLoading = true;
     notifyListeners(); // 1. Inicia carregamento e notifica UI
@@ -72,7 +74,7 @@ class AuthProvider with ChangeNotifier {
           await _notificationService.inicializarNotificacoes(_token);
 
           // Configura o ouvinte de notificações para atualizar a UI em tempo real quando uma nova notificação chegar
-          notificationProvider.configurarOuvinte();
+          notificationProvider.configurarOuvinte(ordersProvider, _token!);
 
           _webSocketService.conectar(_token!, (data) {
             print("Mensagem em tempo real recebida: $data");
@@ -142,7 +144,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   // AUTO LOGIN
-  Future<bool> tryAutoLogin(NotificationProvider notificationProvider) async {
+  Future<bool> tryAutoLogin(NotificationProvider notificationProvider, OrdersProvider ordersProvider) async {
     final prefs = await SharedPreferences.getInstance();
 
     final storedToken = prefs.getString('token');
@@ -162,7 +164,7 @@ class AuthProvider with ChangeNotifier {
 
       await _notificationService.inicializarNotificacoes(_token);
 
-      notificationProvider.configurarOuvinte();
+      notificationProvider.configurarOuvinte(ordersProvider, _token!);
 
       _webSocketService.conectar(_token!, (data) {
         print("Mensagem em tempo real recebida: $data");
