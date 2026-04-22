@@ -36,6 +36,14 @@ class NotificationProvider with ChangeNotifier {
     });
   }
 
+  void markAsReadSingle(String id) {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index != -1) {
+      _items[index].isRead = true;
+      notifyListeners();
+    }
+  }
+
   void addNotification(String title, String body) {
     _items.insert(
       0,
