@@ -12,6 +12,8 @@ import '../services/notification_services.dart';
 import '../services/websocket_service.dart';
 import '../providers/notification_provider.dart';
 import '../providers/orders_provider.dart';
+import '../providers/cart_provider.dart';
+import '../providers/address_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthServices _authService = AuthServices();
@@ -75,6 +77,10 @@ class AuthProvider with ChangeNotifier {
 
           // Configura o ouvinte de notificações para atualizar a UI em tempo real quando uma nova notificação chegar
           notificationProvider.configurarOuvinte(ordersProvider, _token!);
+          notificationProvider.verificarMensagemInicial(
+            ordersProvider,
+            _token!,
+          );
 
           _webSocketService.conectar(_token!, (data) {
             print("Mensagem em tempo real recebida: $data");
@@ -137,27 +143,39 @@ class AuthProvider with ChangeNotifier {
     return result; // Retorna o resultado da operação (sucesso/erro)
   }
 
-  // LOGOUT
-  Future<void> logout() async {
+  // LOGOUT - Agora recebe os providers que precisam ser limpos
+  Future<void> logout(
+    OrdersProvider ordersProvider,
+    NotificationProvider notificationProvider,
+    CartProvider cartProvider,
+    AddressProvider addressProvider,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
-    // 1. Remove o token e os dados do usuário do armazenamento local
+
+    // 1. Remove os dados de autenticação do disco
     await prefs.remove('token');
     await prefs.remove('user');
 
-    // 2. Limpa o estado local.
+    // 2. Limpa o estado local do Auth
     _token = null;
     _user = null;
+    _webSocketService.desconectar();
 
-    _webSocketService
-        .desconectar(); // Encerra a conexão WebSocket ao fazer logout
+    // 3. LIMPA OS DADOS DOS OUTROS PROVIDERS
+    ordersProvider.clearOrders();
+    notificationProvider.clearNotifications();
+    cartProvider.clearCart();
+    addressProvider.clear();
 
-    notifyListeners(); // 3. Notifica a UI sobre o logout
+    notifyListeners();
   }
 
   // AUTO LOGIN
   Future<bool> tryAutoLogin(
     NotificationProvider notificationProvider,
     OrdersProvider ordersProvider,
+    CartProvider cartProvider,
+    AddressProvider addressProvider,
   ) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -179,6 +197,7 @@ class AuthProvider with ChangeNotifier {
       await _notificationService.inicializarNotificacoes(_token);
 
       notificationProvider.configurarOuvinte(ordersProvider, _token!);
+      notificationProvider.verificarMensagemInicial(ordersProvider, _token!);
 
       _webSocketService.conectar(_token!, (data) {
         print("Mensagem em tempo real recebida: $data");
@@ -199,7 +218,7 @@ class AuthProvider with ChangeNotifier {
           ordersProvider.fetchOrders(_token!);
           ordersProvider.fetchLastOrderStatus(_token!);
 
-          notifyListeners(); // Isso avisa que algo mudou
+          notifyListeners();
         }
       });
 
@@ -207,7 +226,12 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       // Em caso de erro na decodificação (dados corrompidos), efetua logout forçado
-      await logout();
+      await logout(
+        ordersProvider,
+        notificationProvider,
+        cartProvider,
+        addressProvider,
+      );
       return false;
     }
   }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../providers/address_provider.dart';
+import '../../providers/orders_provider.dart';
+import '../../providers/cart_provider.dart';
 import '../profile/profile_menu_item.dart';
 
 /// Tela do perfil para usuário logado
@@ -138,7 +142,29 @@ class LoggedInView extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: () async {
-                    await authProvider.logout();
+                    final ordersProvider = Provider.of<OrdersProvider>(
+                      context,
+                      listen: false,
+                    );
+                    final notificationProvider =
+                        Provider.of<NotificationProvider>(
+                          context,
+                          listen: false,
+                        );
+                    final cartProvider = Provider.of<CartProvider>(
+                      context,
+                      listen: false,
+                    );
+                    final addressProvider = Provider.of<AddressProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await authProvider.logout(
+                      ordersProvider,
+                      notificationProvider,
+                      cartProvider,
+                      addressProvider,
+                    );
                     if (context.mounted) {
                       Navigator.pushReplacementNamed(context, '/menuClient');
                     }

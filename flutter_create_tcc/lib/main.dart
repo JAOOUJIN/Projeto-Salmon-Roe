@@ -23,7 +23,9 @@ import 'package:flutter_create_tcc/screens/cart/pix_payment_screen.dart';
 import 'package:flutter_create_tcc/screens/home/search_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
-import 'package:flutter_create_tcc/screens/profile/configuration_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration/configuration_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration/about_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration/manage_notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
@@ -75,7 +77,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Salmon Roe App',
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: const SplashScreen(),
@@ -90,6 +92,8 @@ class MyApp extends StatelessWidget {
         '/notifications': (context) => const NotificationsScreen(),
         '/accountData': (context) => const AccountDataScreen(),
         '/configuration': (context) => const ConfigurationScreen(),
+        '/aboutVersion': (context) => const AboutVersionScreen(),
+        '/manageNotifications': (context) => const ManageNotificationsScreen(),
         '/personalInfo': (context) => const PersonalInfoScreen(),
         '/accessInfo': (context) => const AccessInfoScreen(),
         '/forgetPassword': (context) => const ForgetPasswordScreen(),

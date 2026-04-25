@@ -1,38 +1,104 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/notification_model.dart';
 import '../services/notification_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/orders_provider.dart';
 
 class NotificationProvider with ChangeNotifier {
   final List<NotificationModel> _items = [];
   final NotificationServices _notificationService = NotificationServices();
 
+  StreamSubscription<RemoteMessage>? _subscription;
+
+  bool _notificationsEnabled = true;
+  bool get notificationsEnabled => _notificationsEnabled;
+
+  NotificationProvider() {
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+    notifyListeners();
+  }
+
+  // Método para a tela de configurações alternar o Switch
+  Future<void> setNotificationsEnabled(bool value) async {
+    _notificationsEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notifications_enabled', value);
+    notifyListeners();
+  }
+
   List<NotificationModel> get items => [..._items];
 
   int get unreadCount => _items.where((item) => !item.isRead).length;
 
-  // Inicia a escuta do Firebase e popula a lista automaticamente
-  void configurarOuvinte(OrdersProvider ordersProvider, String token) {
-    _notificationService.onMessageStream.listen((RemoteMessage message) {
-      print("NOTIF_PROVIDER: Mensagem recebida via Stream");
+  /// Captura a notificação que abriu o app e a transforma em um card
+  Future<void> verificarMensagemInicial(
+    OrdersProvider ordersProvider,
+    String token,
+  ) async {
+    // 1. Checa se o app abriu através de uma notificação (app estava fechado)
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance
+        .getInitialMessage();
 
-      // Tenta pegar o título e corpo da notificação padrão
+    if (initialMessage != null) {
+      _processarMensagemRemota(
+        initialMessage,
+        ordersProvider,
+        token,
+        "INICIAL",
+      );
+    }
+
+    // 2. Escuta se o app foi aberto pela notificação mas estava em segundo plano (background)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _processarMensagemRemota(
+        message,
+        ordersProvider,
+        token,
+        "BACKGROUND_CLICK",
+      );
+    });
+  }
+
+  /// Centraliza o processamento de mensagens para evitar repetição de código
+  void _processarMensagemRemota(
+    RemoteMessage message,
+    OrdersProvider ordersProvider,
+    String token,
+    String origem,
+  ) {
+    print("NOTIF_PROVIDER: Processando mensagem via $origem");
+
+    if (message.data['type'] == 'order_status') {
+      ordersProvider.fetchOrders(token);
+      ordersProvider.fetchLastOrderStatus(token);
+    }
+
+    // Só adiciona o card se estiver ativado
+    if (_notificationsEnabled) {
       String title = message.notification?.title ?? "Salmon Roe";
       String body =
           message.notification?.body ?? "O status do seu pedido mudou.";
-
-      // Se a mensagem tiver dados personalizados, podemos usá-los para criar uma notificação mais específica
-      if (message.data['type'] == 'order_status') {
-        ordersProvider.fetchOrders(
-          token,
-        ); // Isso atualiza a lista na OrdersScreen
-        ordersProvider.fetchLastOrderStatus(
-          token,
-        ); // Isso atualiza o card da Home
-      }
-
       addNotification(title, body);
+    }
+  }
+
+  void configurarOuvinte(OrdersProvider ordersProvider, String token) {
+    if (_subscription != null) {
+      print("NOTIF_PROVIDER: Cancelando escuta duplicada...");
+      _subscription!.cancel();
+    }
+
+    _subscription = _notificationService.onMessageStream.listen((
+      RemoteMessage message,
+    ) {
+      _processarMensagemRemota(message, ordersProvider, token, "STREAM_ATIVA");
     });
   }
 
@@ -67,6 +133,17 @@ class NotificationProvider with ChangeNotifier {
   // Limpa a lista (útil no logout)
   void clearNotifications() {
     _items.clear();
+    if (_subscription != null) {
+      _subscription!.cancel();
+      _subscription = null;
+      print("NOTIF_PROVIDER: Escuta encerrada com sucesso.");
+    }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

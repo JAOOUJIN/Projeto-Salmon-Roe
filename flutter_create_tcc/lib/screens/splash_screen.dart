@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/orders_provider.dart';
+import '../providers/address_provider.dart';
+import '../providers/cart_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,11 +27,21 @@ class _SplashScreenState extends State<SplashScreen> {
       listen: false,
     );
     final ordersProvider = Provider.of<OrdersProvider>(context, listen: false);
+    final addressProvider = Provider.of<AddressProvider>(
+      context,
+      listen: false,
+    );
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
     // Simula uma espera para carregar recursos
     await Future.delayed(const Duration(seconds: 5));
 
-    final success = await auth.tryAutoLogin(notificationProvider, ordersProvider);
+    final success = await auth.tryAutoLogin(
+      notificationProvider,
+      ordersProvider,
+      cartProvider,
+      addressProvider,
+    );
 
     if (!mounted) return;
 

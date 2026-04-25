@@ -15,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
     if (authProvider.isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Colors.orangeAccent),
+          child: CircularProgressIndicator(color: Color(0xFFFF4C4C)),
         ),
       );
     }

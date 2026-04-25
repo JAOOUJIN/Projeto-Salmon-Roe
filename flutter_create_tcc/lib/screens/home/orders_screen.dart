@@ -24,16 +24,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Future<void> _refreshOrders() async {
-    final auth = context.read<AuthProvider>();
-    final ordersProvider = context.read<OrdersProvider>();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final ordersProvider = Provider.of<OrdersProvider>(context, listen: false);
 
     if (auth.token != null) {
-      await ordersProvider.fetchOrders(auth.token!);
-      await ordersProvider.fetchLastOrderStatus(auth.token!);
+      await Future.wait([
+        ordersProvider.fetchOrders(auth.token!),
+        ordersProvider.fetchLastOrderStatus(auth.token!),
+      ]);
     }
-    
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +47,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: Consumer<OrdersProvider>(
         builder: (context, provider, child) {
@@ -57,16 +58,37 @@ class _OrdersScreenState extends State<OrdersScreen> {
           }
 
           if (provider.errorMessage.isNotEmpty && provider.orders.isEmpty) {
-            return Center(child: Text(provider.errorMessage));
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(provider.errorMessage, textAlign: TextAlign.center),
+                    TextButton(
+                      onPressed: _refreshOrders,
+                      child: const Text("Tentar novamente"),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           return RefreshIndicator(
             onRefresh: _refreshOrders,
             color: const Color(0xFFFF4C4C),
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: [
-                // SEÇÃO DE PEDIDO ATIVO (Mostra se o último pedido não estiver finalizado)
+                // SEÇÃO DE PEDIDO ATIVO
                 if (provider.lastOrder != null &&
                     provider.lastOrder!.status != 'delivered' &&
                     provider.lastOrder!.status != 'cancelled') ...[
@@ -116,12 +138,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
     );
   }
-  
 
   void _navigateToDetails(SaleModel order) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => OrderDetailsScreen(order: order)),
-    );
+    ).then((_) => _refreshOrders());
   }
 }
