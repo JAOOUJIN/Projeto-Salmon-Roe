@@ -31,6 +31,13 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
   Future<void> _createSale() async {
     final double valorTotalDoPedido = widget.cartProvider.totalPrice;
 
+    final ordersProvider = context.read<OrdersProvider>();
+
+    final bool isOrderActive =
+        ordersProvider.lastOrder != null &&
+        ordersProvider.lastOrder!.status != 'delivered' &&
+        ordersProvider.lastOrder!.status != 'cancelled';
+
     setState(() => _isLoading = true);
     final saleCode = DateTime.now().millisecondsSinceEpoch;
 
@@ -40,6 +47,7 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
       address: widget.address,
       delivery: widget.delivery,
       payment: widget.payment,
+      hasActiveOrder: isOrderActive,
     );
 
     setState(() => _isLoading = false);
@@ -50,14 +58,14 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
 
       if (widget.payment == "Pix") {
         // Se for Pix, fecha o modal e vai para a tela de pagamento
-        Navigator.pop(context); 
+        Navigator.pop(context);
         Navigator.pushReplacementNamed(
           context,
           '/pixPayment',
           arguments: {
             'address': widget.address,
             'delivery': widget.delivery,
-            'pix_data': result['data'], 
+            'pix_data': result['data'],
             'total_price': valorTotalDoPedido,
           },
         );
@@ -70,9 +78,28 @@ class _OrderReviewModalState extends State<OrderReviewModal> {
         Navigator.popUntil(context, ModalRoute.withName('/menuClient'));
       }
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erro: ${result['error']}")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  result['error'],
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFFF4C4C), 
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 

@@ -3,6 +3,7 @@
 // e fornecer listas filtradas (destaques, novidades) para a camada de visualização (UI)
 import 'package:flutter/material.dart';
 import '../models/product_model.dart';
+import '../models/product_category.dart';
 import '../services/product_services.dart';
 
 class ProductProvider extends ChangeNotifier {
@@ -23,6 +24,12 @@ class ProductProvider extends ChangeNotifier {
   // Getters públicos para acessar os filtros atuais (categoria e busca)
   String? get selectedCategory => _selectedCategory;
   String get search => _search;
+
+  String get selectedCategoryDisplayName {
+    if (_selectedCategory == null) return 'Todos';
+
+    return ProductCategoryExtension.fromString(_selectedCategory!).displayName;
+  }
 
   // Busca os produtos do serviço e atualiza o estado
   // Notifica os listeners antes e depois da operação para atualizar a UI

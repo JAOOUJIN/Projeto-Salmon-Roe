@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/product_provider.dart';
+import '../../providers/cart_provider.dart';
 import '../../widgets/search/category_selector.dart';
 import '../../widgets/home/product_card.dart';
+import '../../widgets/home/floating_cart.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -37,6 +39,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = context.watch<CartProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -67,7 +71,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
           return Column(
             children: [
-              // Container Busca + Categorias 
+              // Container Busca + Categorias
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -129,7 +133,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
 
-              // Barra de resultados 
+              // Barra de resultados
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
@@ -149,7 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Row(
                       children: [
                         Text(
-                          provider.selectedCategory ?? 'Todos',
+                          provider.selectedCategoryDisplayName,
                           style: const TextStyle(
                             color: Color(0xFFFF4C4C),
                             fontSize: 15,
@@ -178,7 +182,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ],
                     ),
 
-                    // Botão limpar 
+                    // Botão limpar
                     if (hasFilters)
                       GestureDetector(
                         onTap: () => _clearFilters(provider),
@@ -246,6 +250,9 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         },
       ),
+      floatingActionButton: cartProvider.items.isNotEmpty
+          ? const FloatingCartButton()
+          : null,
     );
   }
 
