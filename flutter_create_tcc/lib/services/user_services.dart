@@ -27,10 +27,7 @@ class UserServices {
     try {
       final response = await dio.put(
         '$baseUrl/update-info',
-        data: {
-          // Inclui o campo 'name' no corpo da requisição APENAS se o valor não for nulo (if condicional)
-          'name': ?name, 'cpf': ?cpf,
-        },
+        data: {'name': name, 'cpf': cpf},
         // Autentica a requisição usando o token no cabeçalho
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );

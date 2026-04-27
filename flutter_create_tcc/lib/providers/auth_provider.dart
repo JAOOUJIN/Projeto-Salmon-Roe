@@ -259,29 +259,30 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success'] == true) {
-        final responseData = result['data'] as Map<String, dynamic>?;
-        final data =
-            (responseData?['data'] ?? responseData) as Map<String, dynamic>?;
+        // O Go retorna os dados diretamente (name, cpf, updatedAt)
+        final data = result['data'] as Map<String, dynamic>?;
 
-        if (data != null && data['user'] != null) {
-          final updatedUser = data['user'] as Map<String, dynamic>;
-          _user = UserModel.fromJson(
-            updatedUser,
-          ); // 3. Atualiza o estado local do usuário com os novos dados
+        if (data != null) {
+          // 2. ATUALIZAÇÃO LOCAL: Mantemos os dados fixos (id, email, phone)
+          // e trocamos apenas o que foi alterado no banco
+          _user = _user!.copyWith(
+            name: data['name'] ?? _user!.name,
+            cpf: data['cpf'] ?? _user!.cpf,
+          );
 
+          // 3. PERSISTÊNCIA: Atualiza o JSON no disco para o Auto-Login ler os dados novos
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-            'user',
-            jsonEncode(_user!.toJson()),
-          ); // 4. Persiste a atualização localmente.
+          await prefs.setString('user', jsonEncode(_user!.toJson()));
 
+          // 4. UI: Notifica todos os widgets sobre a mudança
           notifyListeners();
+
           return {
             'success': true,
-            'data': {'user': updatedUser},
+            'data': {'user': _user!.toJson()},
           };
         } else {
-          return {'success': false, 'error': 'Resposta do servidor inválida.'};
+          return {'success': false, 'error': 'Dados de resposta vazios.'};
         }
       } else {
         return {

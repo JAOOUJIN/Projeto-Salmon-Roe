@@ -142,11 +142,10 @@ class _AccessInfoScreenState extends State<AccessInfoScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu telefone.';
                   }
-                  final phoneRegex = RegExp(r'^[0-9]+$');
-                  if (!phoneRegex.hasMatch(value)) {
-                    return 'Digite apenas números.';
-                  }
-                  if (value.length != 11) {
+                  
+                  final cleanPhone = _phoneFormatter.getUnmaskedText();
+
+                  if (cleanPhone.length != 11) {
                     return 'O telefone deve ter 11 dígitos.';
                   }
                   return null;

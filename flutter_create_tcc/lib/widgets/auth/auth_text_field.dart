@@ -5,6 +5,7 @@ class AuthTextField extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool obscureText;
+  final Widget? suffixIcon;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
 
@@ -14,6 +15,7 @@ class AuthTextField extends StatelessWidget {
     required this.label,
     required this.icon,
     this.obscureText = false,
+    this.suffixIcon,
     this.keyboardType = TextInputType.text,
     this.validator,
   });
@@ -24,12 +26,13 @@ class AuthTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      cursorColor: const Color(0xFFFF7043), 
-      style: const TextStyle(color: Colors.white, fontSize: 14), 
+      cursorColor: const Color(0xFFFF7043),
+      style: const TextStyle(color: Colors.white, fontSize: 14),
 
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: suffixIcon,
 
         //FUNDO SÓLIDO
         filled: true,
