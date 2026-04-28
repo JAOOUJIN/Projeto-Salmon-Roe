@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/sale_model.dart';
 import '../../widgets/orders/order_details_widgets.dart';
 import '../../widgets/orders/order_utils.dart';
+import '../profile/support_screen.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   final SaleModel order;
@@ -28,6 +29,24 @@ class OrderDetailsScreen extends StatelessWidget {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.headset_mic_outlined,
+              color: Colors.redAccent,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      SupportScreen(orderCode: order.saleCode.toString()),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -56,7 +75,7 @@ class OrderDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Salmon Roe Sushi",
+                          "Salmon Roe ",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

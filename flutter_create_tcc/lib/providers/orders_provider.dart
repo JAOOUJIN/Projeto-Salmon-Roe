@@ -18,48 +18,43 @@ class OrdersProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
 
-  // 1. Busca o histórico completo de pedidos do usuário logado
+  // 1. Busca o histórico completo de pedidos
   Future<void> fetchOrders(String token) async {
     _isLoading = true;
     _errorMessage = '';
-    notifyListeners();
 
     try {
       final result = await _service.getMyOrders(token: token);
 
       if (result['success'] == true) {
-        // O result['data'] já vem mapeado como List<SaleModel> pelo Service
-        _orders = result['data'];
+        _orders = result['data'] ?? [];
       } else {
-        _errorMessage = result['error'] ?? 'Erro ao carregar histórico';
+        _orders = [];
       }
     } catch (e) {
-      _errorMessage = 'Ocorreu um erro inesperado: $e';
+      _errorMessage = 'Erro ao carregar histórico: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // 2. Busca apenas o status do último pedido feito (para a Home/Status)
+  // 2. Busca apenas o status do último pedido
   Future<void> fetchLastOrderStatus(String token) async {
     _isLoading = true;
     _errorMessage = '';
-    notifyListeners();
 
     try {
       final result = await _service.getLastOrderStatus(token: token);
 
-      if (result['success'] == true) {
-        // Se o seu service retornar o Map bruto, usamos o fromJson aqui
-        // Se o service já converter, basta atribuir
+      if (result['success'] == true && result['data'] != null) {
         _lastOrder = SaleModel.fromJson(result['data']);
       } else {
         _lastOrder = null;
-        _errorMessage = result['error'] ?? 'Nenhum pedido ativo encontrado';
       }
     } catch (e) {
-      _errorMessage = 'Erro ao buscar pedido: $e';
+      _lastOrder = null;
+      debugPrint("Erro ao buscar último pedido: $e");
     } finally {
       _isLoading = false;
       notifyListeners();

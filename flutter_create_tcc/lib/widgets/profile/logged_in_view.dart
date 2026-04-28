@@ -124,15 +124,21 @@ class LoggedInView extends StatelessWidget {
               ),
 
               ProfileMenuItem(
-                icon: Icons.settings_outlined,
-                title: "Configurações",
-                onTap: () => Navigator.pushNamed(context, '/configuration'),
+                icon: Icons.headset_mic_outlined,
+                title: "Suporte",
+                onTap: () => Navigator.pushNamed(context, '/support'),
               ),
 
               const Divider(
                 height: 1,
                 thickness: 0.5,
                 color: Color(0xFFE0E0E0),
+              ),
+
+              ProfileMenuItem(
+                icon: Icons.settings_outlined,
+                title: "Configurações",
+                onTap: () => Navigator.pushNamed(context, '/configuration'),
               ),
 
               const SizedBox(height: 24),

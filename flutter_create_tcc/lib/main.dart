@@ -27,6 +27,7 @@ import 'package:flutter_create_tcc/screens/profile/configuration/configuration_s
 import 'package:flutter_create_tcc/screens/profile/configuration/about_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration/manage_notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/support_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/access_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/personal_info_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/address/address_screen.dart';
@@ -102,6 +103,7 @@ class MyApp extends StatelessWidget {
         '/editAddress': (context) => EditAddressScreen(
           address: ModalRoute.of(context)!.settings.arguments as AddressModel,
         ),
+        '/support': (context) => const SupportScreen(),
         '/cart': (context) => const CartScreen(),
         '/pixPayment': (context) => const PixPaymentScreen(),
         '/verifyOtp': (context) {

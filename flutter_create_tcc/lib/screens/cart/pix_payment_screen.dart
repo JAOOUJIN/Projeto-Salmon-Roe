@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart'; 
+import '../../providers/auth_provider.dart';
 
 class PixPaymentScreen extends StatefulWidget {
   const PixPaymentScreen({super.key});
@@ -14,7 +15,7 @@ class PixPaymentScreen extends StatefulWidget {
 class _PixPaymentScreenState extends State<PixPaymentScreen> {
   String? _pixCode;
   Timer? _timer;
-  int _secondsRemaining = 600; 
+  int _secondsRemaining = 600;
 
   @override
   void initState() {
@@ -34,11 +35,8 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
     });
   }
 
-  // Função para mostrar o sucesso e redirecionar
   void _showSuccessAnimation() {
-    _timer?.cancel(); 
-
-    // Limpa o ID confirmado no provider para não repetir a animação
+    _timer?.cancel();
     context.read<AuthProvider>().clearLastConfirmedSale();
 
     showDialog(
@@ -76,9 +74,13 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
   void _copyToClipboard() {
     if (_pixCode == null) return;
     Clipboard.setData(ClipboardData(text: _pixCode!));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Código Pix copiado!")));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Código Pix copiado!"),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.black87,
+      ),
+    );
   }
 
   @override
@@ -89,21 +91,18 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Recebendo os dados passados pelo Modal
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-
-        print("ARGUMENTOS RECEBIDOS: $args");
-        
-    final pixData = args['pix_data'];
-    final currentSaleId = pixData['saleId']?.toString();
-    _pixCode = pixData['pix_copia_e_cola'] ?? "Código não disponível";
-
-    final double totalPrice = args['total_price'] ?? 0.0;
-
     final auth = context.watch<AuthProvider>();
 
-    // Verifica se o pagamento foi confirmado pelo WebSocket
+    final pixData = args['pix_data'];
+
+    _pixCode = pixData['qr_code'] ?? "Código não disponível";
+    final String? qrCodeBase64 = pixData['qr_code_base64'];
+
+    final currentSaleId = args['pix_data']['sale']?['_id']?.toString();
+    final double totalPrice = args['total_price'] ?? 0.0;
+
     if (auth.lastConfirmedSaleId != null &&
         auth.lastConfirmedSaleId == currentSaleId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -135,9 +134,8 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const Icon(Icons.pix, size: 80, color: Color(0xFF32BCAD)),
-            const SizedBox(height: 24),
-
+            const Icon(Icons.pix, size: 40, color: Color(0xFF32BCAD)),
+            const SizedBox(height: 16),
             const Text(
               "Aguardando pagamento",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -145,28 +143,73 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
             const SizedBox(height: 8),
             Text(
               "Total a pagar: R\$ ${totalPrice.toStringAsFixed(2)}",
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-
-            const Text(
-              "Copie o código abaixo e utilize o aplicativo do seu banco para finalizar o pagamento.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-
-            Text(
-              "O código expira em: ${_formatTime(_secondsRemaining)}",
               style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
                 color: Color(0xFFFF4C4C),
-                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 24),
 
+            // 2. Exibição Visual do QR Code (Base64)
+            if (qrCodeBase64 != null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Image.memory(
+                  base64Decode(qrCodeBase64),
+                  height: 200,
+                  width: 200,
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.qr_code_2,
+                    size: 200,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 24),
+            const Text(
+              "Escaneie o QR Code ou copie o código abaixo para pagar no app do seu banco.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 18,
+                  color: Color(0xFFFF4C4C),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Expira em: ${_formatTime(_secondsRemaining)}",
+                  style: const TextStyle(
+                    color: Color(0xFFFF4C4C),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 3. Container do Código Copia e Cola atualizado
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
@@ -177,50 +220,58 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
                   Expanded(
                     child: Text(
                       _pixCode!,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Colors.black54,
+                        fontFamily: 'monospace',
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.copy, color: Colors.grey),
+                    icon: const Icon(Icons.copy, color: Color(0xFFFF4C4C)),
                     onPressed: _copyToClipboard,
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
 
             SizedBox(
               width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
+              height: 55,
+              child: ElevatedButton.icon(
                 onPressed: _copyToClipboard,
+                icon: const Icon(Icons.copy, color: Colors.white),
+                label: const Text(
+                  "COPIAR CÓDIGO PIX",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF4C4C),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                child: const Text(
-                  "COPIAR CÓDIGO PIX",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  elevation: 0,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             const Text(
-              "Assim que o pagamento for confirmado, esta tela será atualizada automaticamente.",
+              "O Salmon Roe confirmará seu pagamento automaticamente via WebSocket.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ),
