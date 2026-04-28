@@ -79,5 +79,6 @@ func registerUser(group *gin.RouterGroup, userRepo *UserRepository) {
 func registerSales(group *gin.RouterGroup, notifier notify.OrderStatusNotifier) {
 	salesRepo := NewSalesRepository(os.Getenv("COLLECTION_NAME_SALES"))
 	productRepo := NewProductRepository(os.Getenv("COLLECTION_NAME_PRODUCTS"))
-	NewSalesController(salesRepo, productRepo, notifier).GetSalesRoutes(group)
+	userRepo := NewUserRepository(os.Getenv("COLLECTION_NAME_USERS"))
+	NewSalesController(salesRepo, productRepo, userRepo, notifier).GetSalesRoutes(group)
 }

@@ -13,12 +13,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	configMP "github.com/mercadopago/sdk-go/pkg/config"
+	"github.com/mercadopago/sdk-go/pkg/payment"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SalesController struct {
 	salesRepo   repo.SalesRepositoryInterface
 	productRepo repo.ProductRepositoryInterface
+	userRepo    repo.UserRepositoryInterface
 	notifier    notify.OrderStatusNotifier
 }
 
@@ -26,10 +29,14 @@ type SalesControllerInterface interface {
 	GetSalesRoutes(rGroup *gin.RouterGroup)
 }
 
-func NewSalesController(salesRepo repo.SalesRepositoryInterface, productRepo repo.ProductRepositoryInterface, n notify.OrderStatusNotifier) *SalesController {
+func NewSalesController(salesRepo repo.SalesRepositoryInterface,
+	productRepo repo.ProductRepositoryInterface,
+	userRepo repo.UserRepositoryInterface,
+	n notify.OrderStatusNotifier) *SalesController {
 	return &SalesController{
 		salesRepo:   salesRepo,
 		productRepo: productRepo,
+		userRepo:    userRepo,
 		notifier:    n,
 	}
 }
@@ -57,7 +64,6 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 	// Buscar produtos e validar existência
 	var totalVenda float64
 	var salesItems []models.SalesItem
-
 	for _, itemReq := range req.Itens {
 		productID, err := primitive.ObjectIDFromHex(itemReq.ProductID)
 		if err != nil {
@@ -99,6 +105,13 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		}
 	}
 
+	// 2. Buscar usuário no Banco
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
+		return
+	}
+
 	newSale := &models.Sales{
 		UserID:     userID,
 		SalesID:    req.SalesID,
@@ -110,18 +123,63 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		Payment:    req.Payment,
 	}
 
+	accessToken := os.Getenv("MP_ACCESS_TOKEN")
+	if accessToken == "" {
+		log.Error("Erro: Variável de ambiente MP_ACCESS_TOKEN não está definida.")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("error ao acessar conta MP "),
+		})
+		return
+	}
+
+	cfg, err := configMP.New(accessToken)
+	if err != nil {
+		log.Error("Erro ao configurar o SDK do Mercado Pago: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Erro ao configurar o SDK do Mercado Pago"),
+		})
+		return
+	}
+
+	paymentClient := payment.NewClient(cfg)
+
+	payRequest := payment.Request{
+		TransactionAmount: utils.AroundFloat(totalVenda),
+		Description:       fmt.Sprintf("venda:%d", req.SalesID),
+		PaymentMethodID:   "pix",
+		Payer: &payment.PayerRequest{
+			Email: user.Email,
+		},
+	}
 	if err := s.salesRepo.Create(c, newSale); err != nil {
 		log.Error("erro ao criar venda", utils.Function, utils.FnCallerName(), "error", err.Error())
 		erro.HandleError(c, erro.ErrInternalServer)
+		return
+	}
+	resource, err := paymentClient.Create(c.Request.Context(), payRequest)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix: " + err.Error()})
 		return
 	}
 
 	log.Debug("venda criada com sucesso", utils.Function, utils.FnCallerName(), "saleId", newSale.ID.Hex())
 
 	saleDTO := s.populateProducts(c, *newSale)
+	pixData := resource.PointOfInteraction.TransactionData
+
+	// Validamos se o QRCode foi gerado pela API (se a string não está vazia)
+	if pixData.QRCode == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Dados do Pix não retornados pela API"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Venda criada!",
-		"sale":    saleDTO,
+		"status":         "success",
+		"payment_id":     resource.ID,
+		"qr_code":        pixData.QRCode,
+		"qr_code_base64": pixData.QRCodeBase64,
+		"message":        "Venda criada!",
+		"sale":           saleDTO,
 	})
 }
 

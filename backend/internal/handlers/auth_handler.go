@@ -94,6 +94,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	user := &models.CreateUser{
 		Email:        req.Email,
 		PasswordHash: string(pwHash),
+		Phone:        req.Phone,
 	}
 	if err := h.repo.Create(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{util.ErrorLabel: "erro ao criar usuário"})
@@ -127,6 +128,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{util.ErrorLabel: "erro ao buscar usuário"})
 		return
 	}
+
+	if user == nil {
+		user, err = h.repo.FindByPhone(req.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{util.ErrorLabel: "erro ao buscar usuário"})
+			return
+		}
+	}
+
 	if user == nil {
 		c.JSON(http.StatusUnauthorized, gin.H{util.ErrorLabel: "credenciais inválidas"})
 		return

@@ -21,6 +21,7 @@ type UserRepository struct {
 type UserRepositoryInterface interface {
 	Create(user *models.CreateUser) error
 	FindByEmail(email string) (*models.CreateUser, error)
+	FindByPhone(phone string) (*models.CreateUser, error)
 	GetByID(id primitive.ObjectID) (*models.CreateUser, error)
 	UpdateInfo(c context.Context, id bson.M, updateInfo *models.UserInfo) (*mongo.UpdateResult, error)
 	UpdateAccess(c context.Context, id bson.M, data bson.M) (*mongo.UpdateResult, error)
@@ -61,6 +62,18 @@ func (r *UserRepository) Create(user *models.CreateUser) error {
 func (r *UserRepository) FindByEmail(email string) (*models.CreateUser, error) {
 	var u models.CreateUser
 	err := r.coll.FindOne(db.Ctx(), bson.M{"email": email}).Decode(&u)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
+}
+
+func (r *UserRepository) FindByPhone(phone string) (*models.CreateUser, error) {
+	var u models.CreateUser
+	err := r.coll.FindOne(db.Ctx(), bson.M{"phone": phone}).Decode(&u)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
