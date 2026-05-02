@@ -18,6 +18,12 @@ class OrdersProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
 
+  int get activeOrdersCount => _orders
+      .where(
+        (order) => order.status != 'delivered' && order.status != 'cancelled',
+      )
+      .length;
+
   // 1. Busca o histórico completo de pedidos
   Future<void> fetchOrders(String token) async {
     _isLoading = true;
@@ -39,7 +45,6 @@ class OrdersProvider with ChangeNotifier {
     }
   }
 
-  // 2. Busca apenas o status do último pedido
   Future<void> fetchLastOrderStatus(String token) async {
     _isLoading = true;
     _errorMessage = '';

@@ -34,7 +34,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return OrderReviewModal(
-          // Passamos o endereço formatado
           address: "${widget.address.street}, ${widget.address.number}",
           delivery: widget.delivery,
           payment: selectedPayment,
@@ -61,47 +60,56 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Seção de seleção de pagamento (Pix ou Entrega)
-            PaymentSection(
-              selectedPayment: selectedPayment,
-              onPaymentSelected: (value) {
-                setState(() {
-                  selectedPayment = value;
-                });
-              },
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PaymentSection(
+                    selectedPayment: selectedPayment,
+                    onPaymentSelected: (value) {
+                      setState(() {
+                        selectedPayment = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  OrderSummarySection(cartProvider: cartProvider),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+          ),
 
-            OrderSummarySection(cartProvider: cartProvider),
-            const Spacer(),
-            // BOTÃO ÚNICO: Revisar Pedido
-            ElevatedButton(
-              onPressed: _showReviewModal,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF4C4C),
-                minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: ElevatedButton(
+                onPressed: _showReviewModal,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF4C4C),
+                  minimumSize: const Size(double.infinity, 54),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 4,
+                  shadowColor: Colors.black26,
                 ),
-                elevation: 4,
-                shadowColor: Colors.black26,
-              ),
-              child: const Text(
-                "Revisar Pedido",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                child: const Text(
+                  "Revisar Pedido",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -265,7 +265,7 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
             ),
             const SizedBox(height: 20),
             const Text(
-              "O Salmon Roe confirmará seu pagamento automaticamente via WebSocket.",
+              "O Salmon Roe confirmará seu pagamento automaticamente.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,

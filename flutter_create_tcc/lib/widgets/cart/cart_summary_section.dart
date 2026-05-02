@@ -55,43 +55,47 @@ class _CartSummarySectionState extends State<CartSummarySection>
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  'R\$ ${widget.cartProvider.totalPrice.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
+        child: SafeArea(
+          top: false, 
+          child: Column(
+            mainAxisSize: MainAxisSize.min, 
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            ElevatedButton(
-              onPressed: widget.onContinuePressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 3,
+                  Text(
+                    'R\$ ${widget.cartProvider.totalPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
               ),
-              child: const Text(
-                'Continuar',
-                style: TextStyle(fontSize: 17, color: Colors.white),
+              const SizedBox(height: 14),
+              ElevatedButton(
+                onPressed: widget.onContinuePressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 3,
+                ),
+                child: const Text(
+                  'Continuar',
+                  style: TextStyle(fontSize: 17, color: Colors.white),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

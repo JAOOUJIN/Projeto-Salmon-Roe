@@ -15,7 +15,7 @@ import 'package:flutter_create_tcc/screens/splash_screen.dart';
 import 'package:flutter_create_tcc/screens/login/login_screen.dart';
 import 'package:flutter_create_tcc/screens/login/registration_screen.dart';
 import 'package:flutter_create_tcc/screens/login/forget_password_screen.dart';
-import 'package:flutter_create_tcc/screens/login/verify_otp_screen.dart';
+import 'package:flutter_create_tcc/screens/login/verify_code_screen.dart';
 import 'package:flutter_create_tcc/screens/home/menu_client_screen.dart';
 import 'package:flutter_create_tcc/screens/home/home_screen.dart';
 import 'package:flutter_create_tcc/screens/home/orders_screen.dart';
@@ -60,7 +60,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => AddressProvider()),
-        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider()..fetchProducts(),
+        ),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
@@ -106,11 +108,11 @@ class MyApp extends StatelessWidget {
         '/support': (context) => const SupportScreen(),
         '/cart': (context) => const CartScreen(),
         '/pixPayment': (context) => const PixPaymentScreen(),
-        '/verifyOtp': (context) {
+        '/verifyCode': (context) {
           final emailArgument =
               ModalRoute.of(context)!.settings.arguments as String;
 
-          return VerifyOtpScreen(email: emailArgument);
+          return VerifyCodeScreen(email: emailArgument);
         },
       },
     );

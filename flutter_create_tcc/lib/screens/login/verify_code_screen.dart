@@ -1,23 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/otp_input_fields.dart';
 
-class VerifyOtpScreen extends StatefulWidget {
+class VerifyCodeScreen extends StatefulWidget {
   final String email;
 
-  const VerifyOtpScreen({super.key, required this.email});
+  const VerifyCodeScreen({super.key, required this.email});
 
   @override
-  State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
+  State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
 }
 
-class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
+class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final List<TextEditingController> _otpControllers = List.generate(
+  // Lista de controllers para os 6 dígitos do código
+  final List<TextEditingController> _codeControllers = List.generate(
     6,
     (index) => TextEditingController(),
   );
@@ -41,14 +41,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   @override
   void dispose() {
-    for (var controller in _otpControllers) {
+    for (var controller in _codeControllers) {
       controller.dispose();
     }
-
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _timer?.cancel();
-
     super.dispose();
   }
 
@@ -67,12 +65,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     });
   }
 
-  Future<void> _verifyOtpAndResetPassword() async {
+  Future<void> _verifyCodeAndResetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final otp = _otpControllers.map((c) => c.text).join();
+    // Junta os 6 dígitos em uma única String de código
+    final code = _codeControllers.map((c) => c.text).join();
 
-    if (otp.length != 6) {
+    if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Digite o código de 6 dígitos'),
@@ -85,9 +84,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
     final provider = context.read<AuthProvider>();
 
+    // Chama o resetPassword passando o 'code' (antigo OTP)
     final result = await provider.resetPassword(
       widget.email,
-      otp,
+      code,
       _passwordController.text,
     );
 
@@ -167,7 +167,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             children: [
               const SizedBox(height: 40),
 
-              // Ícone
+              // Ícone de segurança
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -207,12 +207,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
               const SizedBox(height: 40),
 
-              /// OTP INPUT
-              OtpInputFields(controllers: _otpControllers),
+              /// INPUT DOS 6 DÍGITOS DO CÓDIGO
+              OtpInputFields(controllers: _codeControllers),
 
               const SizedBox(height: 32),
 
-              /// NOVA SENHA
+              /// FORMULÁRIO DE NOVA SENHA
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -234,15 +234,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       });
                     },
                   ),
-
                   filled: true,
                   fillColor: Colors.white,
-
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
                   ),
-
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
@@ -250,7 +247,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       width: 1.2,
                     ),
                   ),
-
                   focusedBorder: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(14)),
                     borderSide: BorderSide(color: Color(0xFFFF4C4C), width: 2),
@@ -269,7 +265,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
               const SizedBox(height: 16),
 
-              /// CONFIRMAR SENHA
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
@@ -291,15 +286,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       });
                     },
                   ),
-
                   filled: true,
                   fillColor: Colors.white,
-
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide.none,
                   ),
-
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
@@ -307,7 +299,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       width: 1.2,
                     ),
                   ),
-
                   focusedBorder: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(14)),
                     borderSide: BorderSide(color: Color(0xFFFF4C4C), width: 2),
@@ -326,12 +317,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
               const SizedBox(height: 32),
 
-              /// BOTÃO RESET
+              /// BOTÃO DE AÇÃO
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : _verifyOtpAndResetPassword,
+                  onPressed: isLoading ? null : _verifyCodeAndResetPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF4C4C),
                     foregroundColor: Colors.white,
@@ -361,7 +352,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
               const SizedBox(height: 24),
 
-              /// REENVIAR OTP
+              /// RODAPÉ: REENVIAR E VOLTAR
               _canResend
                   ? TextButton(
                       onPressed: _resendCode,
@@ -374,7 +365,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
               const SizedBox(height: 24),
 
-              /// VOLTAR
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text(

@@ -366,16 +366,17 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // RESET PASSWORD - envia nova senha junto com OTP para redefinir a senha do usuário
+  // RESET PASSWORD 
   Future<Map<String, dynamic>> resetPassword(
     String email,
-    String otp,
+    String code,
     String newPassword,
   ) async {
     _isLoading = true;
     notifyListeners();
 
-    final result = await _authService.resetPassword(email, otp, newPassword);
+    // Chamando o serviço atualizado
+    final result = await _authService.resetPassword(email, code, newPassword);
 
     _isLoading = false;
     notifyListeners();
@@ -383,7 +384,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // RESEND OTP - reenvia código OTP para o email do usuário
+  // RESEND E-MAIL  - reenvia código para o email do usuário
   Future<Map<String, dynamic>> resendOtp(String email) async {
     _isLoading = true;
     notifyListeners();

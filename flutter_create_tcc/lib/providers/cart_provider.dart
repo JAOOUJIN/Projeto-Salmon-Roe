@@ -135,16 +135,18 @@ class CartProvider with ChangeNotifier {
     required String address,
     required String delivery,
     required String payment,
-    bool hasActiveOrder = false,
+    int activeOrdersCount = 0, 
   }) async {
     if (_items.isEmpty) {
       return {'success': false, 'error': 'Carrinho vazio.'};
     }
 
-    if (hasActiveOrder) {
+    if (activeOrdersCount >= 3) {
       return {
         'success': false,
-        'error': 'Você já possui um pedido em andamento. Aguarde a finalização para fazer um novo pedido.',
+        'error':
+            'Você atingiu o limite de 3 pedidos em andamento. '
+            'Aguarde a entrega de um deles para realizar uma nova compra.',
       };
     }
 
@@ -152,7 +154,6 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1. Converte os itens do carrinho para a estrutura SaleItem esperada pelo serviço de API
       final saleItems = _items
           .map(
             (item) => SaleItem(
@@ -164,7 +165,7 @@ class CartProvider with ChangeNotifier {
           .toList();
 
       final result = await _saleService.createSale(
-        token: token, // Requer o token de autenticação para criar a venda
+        token: token,
         saleCode: saleCode,
         items: saleItems,
         address: address,
@@ -173,7 +174,7 @@ class CartProvider with ChangeNotifier {
       );
 
       if (result['success'] == true) {
-        clearCart(); // 2. Se a venda for bem-sucedida, limpa o carrinho
+        clearCart();
       }
 
       _isLoading = false;

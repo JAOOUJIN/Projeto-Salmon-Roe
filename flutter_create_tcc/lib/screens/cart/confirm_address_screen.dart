@@ -47,56 +47,62 @@ class ConfirmAddressScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const DeliveryOptionsSection(),
                   const Spacer(),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        await showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => FractionallySizedBox(
-                            heightFactor: 0.95,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(25),
-                              ),
-                              child: ReviewOrderScreen(
-                                address: selectedAddress,
-                                delivery: "Padrão",
+                  SafeArea(
+                    top: false,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => FractionallySizedBox(
+                              heightFactor: 0.95,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(25),
+                                ),
+                                // Adicionado SafeArea interno para o ReviewOrderScreen
+                                child: SafeArea(
+                                  child: ReviewOrderScreen(
+                                    address: selectedAddress,
+                                    delivery: "Padrão",
+                                  ),
+                                ),
                               ),
                             ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF4C4C),
+                          minimumSize: const Size(double.infinity, 52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF4C4C),
-                        minimumSize: const Size(double.infinity, 52),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          elevation: 4,
+                          shadowColor: Colors.black26,
                         ),
-                        elevation: 4,
-                        shadowColor: Colors.black26,
-                      ),
-                      child: const Text(
-                        "Continuar",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          "Continuar",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),

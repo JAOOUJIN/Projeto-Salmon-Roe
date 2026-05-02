@@ -7,7 +7,14 @@ import '../utils/config.dart';
 
 // Serviços de autenticação
 class AuthServices {
-  final Dio dio = Dio()..interceptors.add(LogInterceptor(responseBody: true, requestBody: true,logPrint: (obj) => print("DIO_DEBUG: $obj")));
+  final Dio dio = Dio()
+    ..interceptors.add(
+      LogInterceptor(
+        responseBody: true,
+        requestBody: true,
+        logPrint: (obj) => print("DIO_DEBUG: $obj"),
+      ),
+    );
   // Monta a URL base para todas as chamadas de autenticação
   final String baseUrl = "${Config.baseUrl}/auth";
 
@@ -53,14 +60,13 @@ class AuthServices {
     }
   }
 
-  // FORGOT PASSWORD - envia OTP para email
+  // FORGOT PASSWORD 
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
       final response = await dio.post(
         '$baseUrl/forgot-password',
         data: {'email': email},
       );
-
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
       return {
@@ -70,41 +76,23 @@ class AuthServices {
     }
   }
 
-  // REDEFINIR SENHA
+  // REDEFINIR SENHA 
   Future<Map<String, dynamic>> resetPassword(
     String email,
-    String otp,
+    String code,
     String newPassword,
   ) async {
     try {
-      // DEBUG: Veja no console se os dados estão corretos antes de enviar
-      print("Enviando Reset: Email: $email, OTP: $otp, Pass: $newPassword");
-
       final response = await dio.post(
         '$baseUrl/reset-password',
-        data: {
-          'email': email,
-          'otp': otp, // Garanta que no Go você mudou para "otp"
-          'newPassword':
-              newPassword, // CamelCase com 'P' maiúsculo conforme o Go
-        },
+        data: {'email': email, 'code': code, 'new_password': newPassword},
       );
-
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      // DEBUG: Imprime o erro real do servidor no console do Flutter
-      print("Erro no Reset: ${e.response?.data}");
-
       String errorMsg = 'Erro ao redefinir senha';
-
       if (e.response?.data != null && e.response?.data is Map) {
-        // Tenta pegar a mensagem de erro que vem do Go
-        errorMsg =
-            e.response?.data['error'] ??
-            e.response?.data['message'] ??
-            errorMsg;
+        errorMsg = e.response?.data['error'] ?? errorMsg;
       }
-
       return {'success': false, 'error': errorMsg};
     }
   }

@@ -36,7 +36,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
       Navigator.pushNamed(
         context,
-        '/verifyOtp',
+        '/verifyCode',
         arguments: _emailController.text.trim(),
       );
     } else {

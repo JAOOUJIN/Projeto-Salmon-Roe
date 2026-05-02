@@ -81,6 +81,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
             );
           }
 
+          final activeOrders = provider.orders
+              .where(
+                (order) =>
+                    order.status != 'delivered' && order.status != 'cancelled',
+              )
+              .toList();
+
           return RefreshIndicator(
             onRefresh: _refreshOrders,
             color: const Color(0xFFFF4C4C),
@@ -88,20 +95,29 @@ class _OrdersScreenState extends State<OrdersScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: [
-                // SEÇÃO DE PEDIDO ATIVO
-                if (provider.lastOrder != null &&
-                    provider.lastOrder!.status != 'delivered' &&
-                    provider.lastOrder!.status != 'cancelled') ...[
-                  const Text(
-                    "Pedido em andamento",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // SEÇÃO DE PEDIDOS ATIVOS (Múltiplos)
+                if (activeOrders.isNotEmpty) ...[
+                  Text(
+                    activeOrders.length > 1
+                        ? "Pedidos em andamento"
+                        : "Pedido em andamento",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  ActiveOrderCard(
-                    order: provider.lastOrder!,
-                    onTap: () => _navigateToDetails(provider.lastOrder!),
-                  ),
-                  const SizedBox(height: 24),
+                  ...activeOrders
+                      .map(
+                        (order) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ActiveOrderCard(
+                            order: order,
+                            onTap: () => _navigateToDetails(order),
+                          ),
+                        ),
+                      ),
+                  const SizedBox(height: 12),
                 ],
 
                 // SEÇÃO DE HISTÓRICO
