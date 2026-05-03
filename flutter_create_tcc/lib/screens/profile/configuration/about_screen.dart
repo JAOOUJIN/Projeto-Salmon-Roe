@@ -15,7 +15,11 @@ class AboutVersionScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         title: const Text(
           "SOBRE ESTA VERSÃO",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
         ),
         centerTitle: true,
       ),
@@ -23,23 +27,27 @@ class AboutVersionScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildDetailOption(
-            context, 
-            title: "Termos de uso", 
-            onTap: () { /* Navigator para tela de texto legal */ }
+            context,
+            title: "Termos de uso",
+            onTap: () {
+              Navigator.pushNamed(context, '/terms');
+            },
           ),
           const Divider(height: 1, thickness: 1, color: dividerColor),
-          
+
           _buildDetailOption(
-            context, 
-            title: "Política de Privacidade", 
-            onTap: () { /* Navigator para tela de texto legal */ }
+            context,
+            title: "Política de Privacidade",
+            onTap: () {
+              Navigator.pushNamed(context, '/privacy');
+            },
           ),
           const Divider(height: 1, thickness: 1, color: dividerColor),
 
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text(
-              "Versão 10.118.0 (P)", // Versão fictícia baseada na sua print
+              "Versão 1.0.0 (Lançamento)",
               style: TextStyle(color: Colors.grey[500], fontSize: 14),
             ),
           ),
@@ -48,7 +56,11 @@ class AboutVersionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailOption(BuildContext context, {required String title, required VoidCallback onTap}) {
+  Widget _buildDetailOption(
+    BuildContext context, {
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       title: Text(title, style: const TextStyle(fontSize: 16)),

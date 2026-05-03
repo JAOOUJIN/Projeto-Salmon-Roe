@@ -25,6 +25,8 @@ import 'package:flutter_create_tcc/screens/profile/notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/accountData/account_data_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration/configuration_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration/about_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration/terms_screen.dart';
+import 'package:flutter_create_tcc/screens/profile/configuration/privacy_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/configuration/manage_notifications_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/profile_screen.dart';
 import 'package:flutter_create_tcc/screens/profile/support_screen.dart';
@@ -106,6 +108,8 @@ class MyApp extends StatelessWidget {
           address: ModalRoute.of(context)!.settings.arguments as AddressModel,
         ),
         '/support': (context) => const SupportScreen(),
+        '/terms': (context) => const TermsScreen(),
+        '/privacy': (context) => const PrivacyScreen(),
         '/cart': (context) => const CartScreen(),
         '/pixPayment': (context) => const PixPaymentScreen(),
         '/verifyCode': (context) {
