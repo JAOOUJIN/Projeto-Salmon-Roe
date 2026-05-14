@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"backend-app/internal/config/auth"
 	"backend-app/internal/models"
-	"backend-app/internal/repositories"
 	"backend-app/internal/services/mail"
 	util "backend-app/internal/utils"
 	"context"
@@ -18,16 +16,31 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// authUserRepository restringe o repositório ao que o fluxo de autenticação precisa (facilita testes com mock).
+type authUserRepository interface {
+	FindByEmail(email string) (*models.CreateUser, error)
+	FindByPhone(phone string) (*models.CreateUser, error)
+	Create(user *models.CreateUser) error
+	SetPasswordResetToken(ctx context.Context, userID primitive.ObjectID, codeHash string, expiresAt time.Time) error
+	ClearPasswordResetFields(ctx context.Context, userID primitive.ObjectID) error
+	UpdatePasswordClearReset(ctx context.Context, userID primitive.ObjectID, passwordHash string) error
+}
+
+type jwtTokenGenerator interface {
+	Generate(userID, email string) (string, error)
+}
+
 type AuthHandler struct {
-	repo       *repositories.UserRepository
-	jwtManager *auth.JWTManager
+	repo       authUserRepository
+	jwtManager jwtTokenGenerator
 	mailer     mail.PasswordResetMailer
 }
 
-func NewAuthHandler(repo *repositories.UserRepository, jwtManager *auth.JWTManager, mailer mail.PasswordResetMailer) *AuthHandler {
+func NewAuthHandler(repo authUserRepository, jwtManager jwtTokenGenerator, mailer mail.PasswordResetMailer) *AuthHandler {
 	return &AuthHandler{
 		repo:       repo,
 		jwtManager: jwtManager,

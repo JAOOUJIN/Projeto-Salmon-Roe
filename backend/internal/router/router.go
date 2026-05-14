@@ -18,7 +18,6 @@ import (
 
 func SetupRouter(logger *slog.Logger) *gin.Engine {
 	r := gin.New()
-	//gin.SetMode(gin.ReleaseMode)
 	r.Use(
 		middleware.CORS(),
 		middleware.LoggerMiddleware(logger),

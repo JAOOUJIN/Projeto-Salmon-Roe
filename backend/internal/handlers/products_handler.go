@@ -38,7 +38,6 @@ func (p *ProductController) GetAllProducts(c *gin.Context) {
 		erro.HandleError(c, erro.ErrInternalServer)
 		return
 	} else if len(resultList) <= 0 {
-		erro.HandleError(c, erro.ErrEmptyResult)
 		c.JSON(http.StatusNoContent, resultList)
 		return
 	}
@@ -65,7 +64,6 @@ func (p *ProductController) GetProductByName(c *gin.Context) {
 		erro.HandleError(c, erro.ErrInternalServer)
 		return
 	} else if len(resultList) <= 0 {
-		erro.HandleError(c, erro.ErrEmptyResult)
 		c.JSON(http.StatusNoContent, resultList)
 		return
 	}

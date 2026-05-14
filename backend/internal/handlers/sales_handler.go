@@ -29,7 +29,8 @@ type SalesControllerInterface interface {
 	GetSalesRoutes(rGroup *gin.RouterGroup)
 }
 
-func NewSalesController(salesRepo repo.SalesRepositoryInterface,
+func NewSalesController(
+	salesRepo repo.SalesRepositoryInterface,
 	productRepo repo.ProductRepositoryInterface,
 	userRepo repo.UserRepositoryInterface,
 	n notify.OrderStatusNotifier) *SalesController {
@@ -61,36 +62,22 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		return
 	}
 
-	// Buscar produtos e validar existência
 	var totalVenda float64
 	var salesItems []models.SalesItem
 	for _, itemReq := range req.Itens {
 		productID, err := primitive.ObjectIDFromHex(itemReq.ProductID)
 		if err != nil {
-			log.Error("ID de produto inválido", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("ID de produto inválido: %s", itemReq.ProductID),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ID de produto inválido"})
 			return
 		}
 
 		product, err := s.productRepo.FindByID(c, productID)
-		if err != nil {
-			log.Error("erro ao buscar produto", utils.Function, utils.FnCallerName(), "error", err.Error())
-			erro.HandleError(c, erro.ErrInternalServer)
-			return
-		}
-
-		if product == nil {
-			log.Error("produto não encontrado", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": fmt.Sprintf("Produto %s não encontrado", itemReq.ProductID),
-			})
+		if err != nil || product == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Produto não encontrado"})
 			return
 		}
 
 		totalVenda += product.ProductPrice * itemReq.Quantity
-
 		salesItems = append(salesItems, models.SalesItem{
 			ProductID: productID,
 			Quantity:  itemReq.Quantity,
@@ -99,13 +86,10 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 	}
 
 	var userID primitive.ObjectID
-	if userIdStr, exists := c.Get("userId"); exists {
-		if userIdStr != nil {
-			userID, _ = primitive.ObjectIDFromHex(userIdStr.(string))
-		}
+	if userIdStr, exists := c.Get("userId"); exists && userIdStr != nil {
+		userID, _ = primitive.ObjectIDFromHex(userIdStr.(string))
 	}
 
-	// 2. Buscar usuário no Banco
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
@@ -124,26 +108,18 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 	}
 
 	if err := s.salesRepo.Create(c, newSale); err != nil {
-		log.Error("erro ao criar venda", utils.Function, utils.FnCallerName(), "error", err.Error())
 		erro.HandleError(c, erro.ErrInternalServer)
 		return
 	}
 
-	// Só gera Pix se o pagamento for exatamente "Pix"
 	if req.Payment == "Pix" {
 		accessToken := os.Getenv("MP_ACCESS_TOKEN")
 		if accessToken == "" {
-			log.Error("Erro: MP_ACCESS_TOKEN não definido.")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro de configuração no servidor de pagamento"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "MP_ACCESS_TOKEN não configurado"})
 			return
 		}
 
-		cfg, err := configMP.New(accessToken)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao configurar Mercado Pago"})
-			return
-		}
-
+		cfg, _ := configMP.New(accessToken)
 		paymentClient := payment.NewClient(cfg)
 		payRequest := payment.Request{
 			TransactionAmount: utils.AroundFloat(totalVenda),
@@ -156,7 +132,7 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 
 		resource, err := paymentClient.Create(c.Request.Context(), payRequest)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix: " + err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix"})
 			return
 		}
 
@@ -174,10 +150,7 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		return
 	}
 
-	// Se não for Pix retorna sucesso simples
-	log.Debug("venda (entrega) criada com sucesso", utils.Function, utils.FnCallerName())
 	saleDTO := s.populateProducts(c, *newSale)
-
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  "success",
 		"message": "Pedido realizado! Pague ao receber.",
@@ -197,7 +170,6 @@ func (s *SalesController) GetSales(c *gin.Context) {
 	}
 
 	if len(sales) <= 0 {
-		erro.HandleError(c, erro.ErrEmptyResult)
 		c.JSON(http.StatusNoContent, []models.SalesDTO{})
 		return
 	}
