@@ -4,6 +4,7 @@ import (
 	"backend-app/internal/config/auth"
 	"backend-app/internal/models"
 	"backend-app/internal/repositories"
+	"backend-app/internal/services/mail"
 	util "backend-app/internal/utils"
 	"context"
 	"crypto/rand"
@@ -20,17 +21,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type resetMailer interface {
-	SendPasswordResetCode(to, code string) error
-}
-
 type AuthHandler struct {
 	repo       *repositories.UserRepository
 	jwtManager *auth.JWTManager
-	mailer     resetMailer
+	mailer     mail.PasswordResetMailer
 }
 
-func NewAuthHandler(repo *repositories.UserRepository, jwtManager *auth.JWTManager, mailer resetMailer) *AuthHandler {
+func NewAuthHandler(repo *repositories.UserRepository, jwtManager *auth.JWTManager, mailer mail.PasswordResetMailer) *AuthHandler {
 	return &AuthHandler{
 		repo:       repo,
 		jwtManager: jwtManager,
@@ -183,7 +180,7 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	}
 
 	if h.mailer == nil {
-		slog.Error("recuperação de senha: SMTP não configurado (defina SMTP_HOST e SMTP_FROM)")
+		slog.Error("recuperação de senha: Resend não configurado (defina RESEND_API_KEY e RESEND_FROM)")
 		c.JSON(http.StatusOK, gin.H{"message": util.ForgotPasswordOkMsg})
 		return
 	}

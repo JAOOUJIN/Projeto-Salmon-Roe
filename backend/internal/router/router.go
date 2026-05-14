@@ -60,9 +60,9 @@ func SetupRouter(logger *slog.Logger) *gin.Engine {
 }
 
 func registerAuth(jwtManager *auth.JWTManager, group *gin.RouterGroup, userRepo *UserRepository) {
-	var mailer *mail.Sender
-	if s, ok := mail.NewSenderFromEnv(); ok {
-		mailer = s
+	var mailer mail.PasswordResetMailer
+	if m, ok := mail.NewPasswordResetMailerFromEnv(); ok {
+		mailer = m
 	}
 	NewAuthHandler(userRepo, jwtManager, mailer).GetDashboardRoutes(group)
 }

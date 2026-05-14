@@ -123,63 +123,65 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		Payment:    req.Payment,
 	}
 
-	accessToken := os.Getenv("MP_ACCESS_TOKEN")
-	if accessToken == "" {
-		log.Error("Erro: Variável de ambiente MP_ACCESS_TOKEN não está definida.")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("error ao acessar conta MP "),
-		})
-		return
-	}
-
-	cfg, err := configMP.New(accessToken)
-	if err != nil {
-		log.Error("Erro ao configurar o SDK do Mercado Pago: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Erro ao configurar o SDK do Mercado Pago"),
-		})
-		return
-	}
-
-	paymentClient := payment.NewClient(cfg)
-
-	payRequest := payment.Request{
-		TransactionAmount: utils.AroundFloat(totalVenda),
-		Description:       fmt.Sprintf("venda:%d", req.SalesID),
-		PaymentMethodID:   "pix",
-		Payer: &payment.PayerRequest{
-			Email: user.Email,
-		},
-	}
 	if err := s.salesRepo.Create(c, newSale); err != nil {
 		log.Error("erro ao criar venda", utils.Function, utils.FnCallerName(), "error", err.Error())
 		erro.HandleError(c, erro.ErrInternalServer)
 		return
 	}
-	resource, err := paymentClient.Create(c.Request.Context(), payRequest)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix: " + err.Error()})
+
+	// Só gera Pix se o pagamento for exatamente "Pix"
+	if req.Payment == "Pix" {
+		accessToken := os.Getenv("MP_ACCESS_TOKEN")
+		if accessToken == "" {
+			log.Error("Erro: MP_ACCESS_TOKEN não definido.")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro de configuração no servidor de pagamento"})
+			return
+		}
+
+		cfg, err := configMP.New(accessToken)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao configurar Mercado Pago"})
+			return
+		}
+
+		paymentClient := payment.NewClient(cfg)
+		payRequest := payment.Request{
+			TransactionAmount: utils.AroundFloat(totalVenda),
+			Description:       fmt.Sprintf("venda:%d", req.SalesID),
+			PaymentMethodID:   "pix",
+			Payer: &payment.PayerRequest{
+				Email: user.Email,
+			},
+		}
+
+		resource, err := paymentClient.Create(c.Request.Context(), payRequest)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix: " + err.Error()})
+			return
+		}
+
+		pixData := resource.PointOfInteraction.TransactionData
+		saleDTO := s.populateProducts(c, *newSale)
+
+		c.JSON(http.StatusCreated, gin.H{
+			"status":         "success",
+			"payment_id":     resource.ID,
+			"qr_code":        pixData.QRCode,
+			"qr_code_base64": pixData.QRCodeBase64,
+			"message":        "Venda com Pix criada!",
+			"sale":           saleDTO,
+		})
 		return
 	}
 
-	log.Debug("venda criada com sucesso", utils.Function, utils.FnCallerName(), "saleId", newSale.ID.Hex())
-
+	// Se não for Pix retorna sucesso simples
+	log.Debug("venda (entrega) criada com sucesso", utils.Function, utils.FnCallerName())
 	saleDTO := s.populateProducts(c, *newSale)
-	pixData := resource.PointOfInteraction.TransactionData
-
-	// Validamos se o QRCode foi gerado pela API (se a string não está vazia)
-	if pixData.QRCode == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Dados do Pix não retornados pela API"})
-		return
-	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"status":         "success",
-		"payment_id":     resource.ID,
-		"qr_code":        pixData.QRCode,
-		"qr_code_base64": pixData.QRCodeBase64,
-		"message":        "Venda criada!",
-		"sale":           saleDTO,
+		"status":  "success",
+		"message": "Pedido realizado! Pague ao receber.",
+		"sale":    saleDTO,
 	})
 }
 
