@@ -8,10 +8,6 @@ import '../providers/orders_provider.dart';
 import '../providers/address_provider.dart';
 import '../providers/cart_provider.dart';
 
-// ════════════════════════════════════════════════════════════════════════════
-//  SPLASH SCREEN V8 (Mestre) – Trajeto do Laser 100% Ajustado ao Shape Real
-// ════════════════════════════════════════════════════════════════════════════
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -22,20 +18,10 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _ctrl;
-
-  // Fase 0 · O Ghost (Silhueta escura de base)
   late final Animation<double> _ghostA;
-
-  // Fase 1 · O Laser correndo pelas curvas (0% → 75%)
   late final Animation<double> _strokeP;
-
-  // Fase 2 · A Cortina do ShaderMask deslizando diagonalmente (10% → 85%)
   late final Animation<double> _curtainProgress;
-
-  // Fase 3 · Pulso senoidal de Glow final de fechamento (88% → 100%)
   late final Animation<double> _glowP;
-
-  String _targetRoute = '/menuClient';
 
   @override
   void initState() {
@@ -51,13 +37,11 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.00, 0.12, curve: Curves.easeOut),
     );
 
-    // O laser corre o trajeto vetorial reparametrizado
     _strokeP = CurvedAnimation(
       parent: _ctrl,
       curve: const Interval(0.02, 0.75, curve: _SmoothCubicEase()),
     );
 
-    // A cortina linear diagonal desliza revelando o bloco inteiro
     _curtainProgress = Tween<double>(begin: -1.2, end: 1.5).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -84,25 +68,20 @@ class _SplashScreenState extends State<SplashScreen>
     final address = Provider.of<AddressProvider>(context, listen: false);
     final cart = Provider.of<CartProvider>(context, listen: false);
 
+    // Executa o tryAutoLogin em paralelo, exatamente como na sua antiga
     try {
-      final ok = await auth.tryAutoLogin(notifications, orders, cart, address);
-      _targetRoute = ok ? '/menuClient' : '/menuClient';
+      await auth.tryAutoLogin(notifications, orders, cart, address);
     } catch (e) {
-      debugPrint('Splash init error: $e');
+      debugPrint('Erro de autenticação ignorado para navegação: $e');
     }
 
-    await Future.delayed(const Duration(milliseconds: 4600));
+    // Aguarda o tempo para a animação do laser rodar completa
+    await Future.delayed(const Duration(milliseconds: 4400));
     if (!mounted) return;
 
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        settings: RouteSettings(name: _targetRoute),
-        pageBuilder: (_, __, ___) => const SizedBox.shrink(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 700),
-      ),
-    );
+    // 🚀 A MUDANÇA ESTÁ AQUI: Voltamos a usar a navegação idêntica à sua antiga!
+    // Isso garante que o Flutter vá buscar o widget mapeado no seu main.dart sem falhar.
+    Navigator.pushReplacementNamed(context, '/menuClient');
   }
 
   @override
@@ -129,9 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // ──────────────────────────────────────────────────────────
-                  // CAMADA 0 · O Ghost Permanente (Sombra base de contraste)
-                  // ──────────────────────────────────────────────────────────
+                  // Camada 0: Ghost
                   Opacity(
                     opacity: (_ghostA.value * 0.14).clamp(0.0, 1.0),
                     child: ColorFiltered(
@@ -166,9 +143,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
 
-                  // ──────────────────────────────────────────────────────────
-                  // CAMADA 1 · A Cortina de Revelação Progressiva (Sem buracos!)
-                  // ──────────────────────────────────────────────────────────
+                  // Camada 1: Cortina de Revelação
                   if (_ctrl.value > 0.05)
                     ShaderMask(
                       blendMode: BlendMode.dstIn,
@@ -195,9 +170,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
 
-                  // ──────────────────────────────────────────────────────────
-                  // CAMADA 2 · O Ponto de Energia Vivo (CustomPainter corrigido)
-                  // ──────────────────────────────────────────────────────────
+                  // Camada 2: Faísca Laser
                   if (_strokeP.value > 0 && _strokeP.value < 0.99)
                     CustomPaint(
                       size: const Size(imgSize, imgSize),
@@ -206,9 +179,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
 
-                  // ──────────────────────────────────────────────────────────
-                  // CAMADA 3 · Glow Orgânico Final de Fechamento
-                  // ──────────────────────────────────────────────────────────
+                  // Camada 3: Glow final
                   if (glowAlpha > 0) ...[
                     Image.asset(
                       'assets/images/logo2.png',
@@ -242,7 +213,7 @@ class _SplashScreenState extends State<SplashScreen>
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-//  ENGINE DE VETORIZAÇÃO DA FAÍSCA (Caminha nas Curvas Reais da Marca)
+//  GEOMETRIA E PAINTERS (Permanecem intactos e perfeitos)
 // ════════════════════════════════════════════════════════════════════════════
 
 mixin _LogoGeometry {
@@ -260,9 +231,7 @@ mixin _LogoGeometry {
     final ox = size.width / 2, oy = size.height / 2;
     final sx = size.width * 0.44, sy = size.height * 0.215;
 
-    // Matriz de curvas corrigida com os novos tensores de expansão do Segmento 3
     final curves = [
-      // Seg 0: Ponta direita → Arco superior
       [
         ox + sx,
         oy,
@@ -273,7 +242,6 @@ mixin _LogoGeometry {
         ox - sx * 0.10,
         oy - sy * 0.90,
       ],
-      // Seg 1: Arco superior → Ponta esquerda
       [
         ox - sx * 0.10,
         oy - sy * 0.90,
@@ -284,7 +252,6 @@ mixin _LogoGeometry {
         ox - sx,
         oy,
       ],
-      // Seg 2: Ponta esquerda → Arco inferior central
       [
         ox - sx,
         oy,
@@ -295,14 +262,15 @@ mixin _LogoGeometry {
         ox + sx * 0.10,
         oy + sy * 0.95,
       ],
-      // Seg 3: O Ajuste Mestre — Faz a parábola perfeita por fora da barriga e sobe no fim!
       [
-        ox + sx * 0.10, oy + sy * 0.95,
+        ox + sx * 0.10,
+        oy + sy * 0.95,
         ox + sx * 0.52,
-        oy + sy * 1.18, // Tensor 1: Empurra a faísca para baixo e para fora
+        oy + sy * 1.18,
         ox + sx * 0.92,
-        oy + sy * 0.55, // Tensor 2: Segura a curva aberta antes da subida final
-        ox + sx, oy, // Ponto de destino na extremidade direita
+        oy + sy * 0.55,
+        ox + sx,
+        oy,
       ],
     ];
 
@@ -344,7 +312,6 @@ mixin _LogoGeometry {
 
 class _LaserTrackPainter extends CustomPainter with _LogoGeometry {
   final double strokeProgress;
-
   _LaserTrackPainter({required this.strokeProgress});
 
   @override
