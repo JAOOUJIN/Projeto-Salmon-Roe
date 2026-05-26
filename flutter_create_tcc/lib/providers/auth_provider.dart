@@ -86,10 +86,11 @@ class AuthProvider with ChangeNotifier {
             print("Mensagem em tempo real recebida: $data");
 
             if (data['type'] == 'payment_confirmed') {
-              // Guarda o ID da venda que foi paga para exibir a animação de confirmação na tela de PIX
-              _lastConfirmedSaleId = data['saleId']?.toString();
+              _lastConfirmedSaleId =
+                  (data['saleId'] ?? data['_id'] ?? data['sale']?['_id'])
+                      ?.toString();
               print(
-                "O pagamento do pedido $_lastConfirmedSaleId foi confirmado!",
+                "O pagamento do pedido $_lastConfirmedSaleId foi confirmado pelo PagBank!",
               );
 
               // Notifica os ouvintes (incluindo a tela de PIX)
@@ -100,6 +101,13 @@ class AuthProvider with ChangeNotifier {
               print(
                 "AUTH_PROVIDER: Status de pedido recebido, notificando ouvintes...",
               );
+
+              if (data['status'] == 'cancelled' ||
+                  data['status'] == 'cancelled_by_timeout') {
+                _lastConfirmedSaleId =
+                    (data['saleId'] ?? data['_id'] ?? data['sale']?['_id'])
+                        ?.toString();
+              }
 
               ordersProvider.fetchOrders(_token!);
               ordersProvider.fetchLastOrderStatus(_token!);
@@ -203,9 +211,11 @@ class AuthProvider with ChangeNotifier {
         print("Mensagem em tempo real recebida: $data");
 
         if (data['type'] == 'payment_confirmed') {
-          // Guarda o ID da venda que foi paga para exibir a animação de confirmação na tela de PIX
-          _lastConfirmedSaleId = data['saleId']?.toString();
-          print("O pagamento do pedido $_lastConfirmedSaleId foi confirmado!");
+          _lastConfirmedSaleId =
+          (data['saleId'] ?? data['_id'] ?? data['sale']?['_id'])?.toString();
+          print(
+            "O pagamento do pedido $_lastConfirmedSaleId foi confirmado pelo PagBank!",
+          );
 
           // Notifica os ouvintes (incluindo a tela de PIX)
           notifyListeners();
@@ -215,6 +225,14 @@ class AuthProvider with ChangeNotifier {
           print(
             "AUTH_PROVIDER: Status de pedido recebido, notificando ouvintes...",
           );
+
+          if (data['status'] == 'cancelled' ||
+              data['status'] == 'cancelled_by_timeout') {
+            _lastConfirmedSaleId =
+                (data['saleId'] ?? data['_id'] ?? data['sale']?['_id'])
+                    ?.toString();
+          }
+
           ordersProvider.fetchOrders(_token!);
           ordersProvider.fetchLastOrderStatus(_token!);
 
@@ -366,7 +384,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-  // RESET PASSWORD 
+  // RESET PASSWORD
   Future<Map<String, dynamic>> resetPassword(
     String email,
     String code,

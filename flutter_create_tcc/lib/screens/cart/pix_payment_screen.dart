@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/orders_provider.dart';
 
 class PixPaymentScreen extends StatefulWidget {
   const PixPaymentScreen({super.key});
@@ -16,6 +16,7 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
   String? _pixCode;
   Timer? _timer;
   int _secondsRemaining = 600;
+  bool _hasCheckedStatus = false; 
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining == 0) {
         timer.cancel();
+        _showTimeoutAlert(); 
       } else {
         setState(() {
           _secondsRemaining--;
@@ -35,6 +37,7 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
     });
   }
 
+  // Pop-up de Sucesso se o cliente pagou
   void _showSuccessAnimation() {
     _timer?.cancel();
     context.read<AuthProvider>().clearLastConfirmedSale();
@@ -71,6 +74,70 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
     });
   }
 
+  // Pop-up de Tempo Expirado se o Go cancelou no servidor
+  void _showTimeoutAlert() {
+    _timer?.cancel();
+    context.read<AuthProvider>().clearLastConfirmedSale();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.timer_off, color: Colors.orange, size: 80),
+              SizedBox(height: 20),
+              Text(
+                "Tempo Limite Atingido",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                "O código Pix expirou e o pedido foi cancelado automaticamente pelo servidor.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        Navigator.popUntil(context, ModalRoute.withName('/menuClient'));
+      }
+    });
+  }
+
+  void _verifyOrderActualStatus(String saleId) async {
+    if (_hasCheckedStatus) return;
+    _hasCheckedStatus = true;
+
+    final token = context.read<AuthProvider>().token;
+    if (token == null) return;
+
+    final ordersProv = context.read<OrdersProvider>();
+    await ordersProv.fetchOrders(token);
+
+    final actualOrder = ordersProv.orders.firstWhere(
+      (o) => o.saleCode.toString() == saleId,
+      orElse: () => ordersProv.orders.first,
+    );
+
+    if (actualOrder.status == 'cancelled' ||
+        actualOrder.status == 'cancelled_by_timeout') {
+      _showTimeoutAlert();
+    } else {
+      _showSuccessAnimation();
+    }
+  }
+
   void _copyToClipboard() {
     if (_pixCode == null) return;
     Clipboard.setData(ClipboardData(text: _pixCode!));
@@ -94,19 +161,19 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final auth = context.watch<AuthProvider>();
-
     final pixData = args['pix_data'];
 
     _pixCode = pixData['qr_code'] ?? "Código não disponível";
-    final String? qrCodeBase64 = pixData['qr_code_base64'];
-
-    final currentSaleId = args['pix_data']['sale']?['_id']?.toString();
+    final String? qrCodeUrl = pixData['qr_code_base64'];
+    final currentSaleId = pixData['sale']?['_id']?.toString();
     final double totalPrice = args['total_price'] ?? 0.0;
 
     if (auth.lastConfirmedSaleId != null &&
         auth.lastConfirmedSaleId == currentSaleId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showSuccessAnimation();
+        _verifyOrderActualStatus(
+          currentSaleId!,
+        ); 
       });
     }
 
@@ -151,8 +218,7 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 2. Exibição Visual do QR Code (Base64)
-            if (qrCodeBase64 != null)
+            if (qrCodeUrl != null && qrCodeUrl.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -167,10 +233,25 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
                     ),
                   ],
                 ),
-                child: Image.memory(
-                  base64Decode(qrCodeBase64),
+                child: Image.network(
+                  qrCodeUrl,
                   height: 200,
                   width: 200,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const SizedBox(
+                      height: 200,
+                      width: 200,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF32BCAD),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) => const Icon(
                     Icons.qr_code_2,
                     size: 200,
@@ -180,13 +261,6 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
               ),
 
             const SizedBox(height: 24),
-            const Text(
-              "Escaneie o QR Code ou copie o código abaixo para pagar no app do seu banco.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -207,70 +281,63 @@ class _PixPaymentScreenState extends State<PixPaymentScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 3. Container do Código Copia e Cola atualizado
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _pixCode!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
-                        fontFamily: 'monospace',
+            if (_pixCode != null)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _pixCode!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.copy, color: Color(0xFFFF4C4C)),
-                    onPressed: _copyToClipboard,
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.copy, color: Color(0xFFFF4C4C)),
+                      onPressed: _copyToClipboard,
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             SizedBox(
-              width: double.infinity,
-              height: 55,
+              width: 240,
+              height: 48,
               child: ElevatedButton.icon(
                 onPressed: _copyToClipboard,
-                icon: const Icon(Icons.copy, color: Colors.white),
+                icon: const Icon(Icons.copy, color: Colors.white, size: 18),
                 label: const Text(
-                  "COPIAR CÓDIGO PIX",
+                  "COPIAR CÓDIGO",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF4C4C),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(24),
                   ),
                   elevation: 0,
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "O Salmon Roe confirmará seu pagamento automaticamente.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
-                fontStyle: FontStyle.italic,
               ),
             ),
           ],
