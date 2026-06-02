@@ -18,6 +18,7 @@ import (
 
 func SetupRouter(logger *slog.Logger) *gin.Engine {
 	r := gin.New()
+	//gin.SetMode(gin.ReleaseMode)
 	r.Use(
 		middleware.CORS(),
 		middleware.LoggerMiddleware(logger),
@@ -60,7 +61,8 @@ func SetupRouter(logger *slog.Logger) *gin.Engine {
 
 func registerAuth(jwtManager *auth.JWTManager, group *gin.RouterGroup, userRepo *UserRepository) {
 	var mailer mail.PasswordResetMailer
-	if m, ok := mail.NewPasswordResetMailerFromEnv(); ok {
+
+	if m, ok := mail.NewWebhookMailerFromEnv(); ok {
 		mailer = m
 	}
 	NewAuthHandler(userRepo, jwtManager, mailer).GetDashboardRoutes(group)

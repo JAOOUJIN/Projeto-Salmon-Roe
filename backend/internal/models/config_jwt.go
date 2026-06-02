@@ -26,6 +26,6 @@ type ForgotPasswordRequest struct {
 
 type ResetPasswordRequest struct {
 	Email       string `json:"email" binding:"required,email"`
-	Code        string `json:"otp" binding:"required,len=6"`
-	NewPassword string `json:"newPassword" binding:"required,min=6"`
+	Code        string `json:"code" binding:"required,len=6"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
 }

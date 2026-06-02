@@ -193,7 +193,7 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	}
 
 	if h.mailer == nil {
-		slog.Error("recuperação de senha: Resend não configurado (defina RESEND_API_KEY e RESEND_FROM)")
+		slog.Error("recuperação de senha: Webhook do Make não configurado (verifique a variável MAKE_WEBHOOK_URL no .env)")
 		c.JSON(http.StatusOK, gin.H{"message": util.ForgotPasswordOkMsg})
 		return
 	}
