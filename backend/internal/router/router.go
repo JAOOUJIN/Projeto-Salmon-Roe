@@ -14,9 +14,10 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupRouter(logger *slog.Logger) *gin.Engine {
+func SetupRouter(logger *slog.Logger, mongoClient *mongo.Client) *gin.Engine {
 	r := gin.New()
 	//gin.SetMode(gin.ReleaseMode)
 	r.Use(
@@ -36,6 +37,8 @@ func SetupRouter(logger *slog.Logger) *gin.Engine {
 		logger.Error("falha ao inicializar FCM", "error", err.Error())
 	}
 	notifier := &notify.Composite{Hub: hub, FCM: fcmSender}
+
+	go notify.StartSalesChangeStream(mongoClient, notifier)
 
 	v1Group := r.Group(utils.UrlGroup)
 	{

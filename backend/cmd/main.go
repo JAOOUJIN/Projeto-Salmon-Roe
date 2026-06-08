@@ -24,9 +24,9 @@ func main() {
 		return
 	}
 
-	_ = database.ConnectDB()
+	mongoClient := database.ConnectDB()
 
-	r := router.SetupRouter(baseLogger)
+	r := router.SetupRouter(baseLogger, mongoClient)
 
 	log.Fatal(r.Run(fmt.Sprintf(":%d", environment.PORTA)))
 }
