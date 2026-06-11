@@ -13,9 +13,9 @@ import (
 )
 
 type mockProductRepo struct {
-	findAll    func(ctx context.Context) ([]models.ProductEntity, error)
+	findAll   func(ctx context.Context) ([]models.ProductEntity, error)
 	findByName func(ctx context.Context, name string) ([]models.ProductEntity, error)
-	findByID   func(ctx context.Context, id interface{}) (*models.ProductEntity, error)
+	findByID  func(ctx context.Context, id interface{}) (*models.ProductEntity, error)
 }
 
 func (m *mockProductRepo) FindAll(ctx context.Context) ([]models.ProductEntity, error) {

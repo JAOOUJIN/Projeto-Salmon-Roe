@@ -6,15 +6,18 @@ import (
 	"backend-app/internal/notify"
 	repo "backend-app/internal/repositories"
 	"backend-app/internal/utils"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	configMP "github.com/mercadopago/sdk-go/pkg/config"
-	"github.com/mercadopago/sdk-go/pkg/payment"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -29,8 +32,7 @@ type SalesControllerInterface interface {
 	GetSalesRoutes(rGroup *gin.RouterGroup)
 }
 
-func NewSalesController(
-	salesRepo repo.SalesRepositoryInterface,
+func NewSalesController(salesRepo repo.SalesRepositoryInterface,
 	productRepo repo.ProductRepositoryInterface,
 	userRepo repo.UserRepositoryInterface,
 	n notify.OrderStatusNotifier) *SalesController {
@@ -54,7 +56,7 @@ func (s *SalesController) GetSalesRoutes(routerGroup *gin.RouterGroup) {
 func (s *SalesController) CreateSale(c *gin.Context) {
 	log := utils.LoggerFromContext(c.Request.Context())
 	log.Debug("criando nova venda", utils.Function, utils.FnCallerName())
-
+	var response gin.H
 	var req models.CreateSaleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error("erro ao validar requisição", utils.Function, utils.FnCallerName(), "error", err.Error())
@@ -62,34 +64,61 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		return
 	}
 
-	var totalVenda float64
+	// Buscar produtos e validar existência
+	var totalVenda int64
+	var totalPrice float64
 	var salesItems []models.SalesItem
+	var itemsPagBank []map[string]interface{}
 	for _, itemReq := range req.Itens {
 		productID, err := primitive.ObjectIDFromHex(itemReq.ProductID)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "ID de produto inválido"})
+			log.Error("ID de produto inválido", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("ID de produto inválido: %s", itemReq.ProductID),
+			})
 			return
 		}
 
 		product, err := s.productRepo.FindByID(c, productID)
-		if err != nil || product == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Produto não encontrado"})
+		if err != nil {
+			log.Error("erro ao buscar produto", utils.Function, utils.FnCallerName(), "error", err.Error())
+			erro.HandleError(c, erro.ErrInternalServer)
 			return
 		}
 
-		totalVenda += product.ProductPrice * itemReq.Quantity
+		if product == nil {
+			log.Error("produto não encontrado", utils.Function, utils.FnCallerName(), "productId", itemReq.ProductID)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Produto %s não encontrado", itemReq.ProductID),
+			})
+			return
+		}
+
+		valorCentavos := int64(math.Round(product.ProductPrice * 100))
+		totalVenda += valorCentavos * itemReq.Quantity
+		totalPrice += product.ProductPrice * float64(itemReq.Quantity)
+
+		itemsPagBank = append(itemsPagBank, map[string]interface{}{
+			"name":        productID,
+			"quantity":    itemReq.Quantity,
+			"unit_amount": valorCentavos,
+		})
+
 		salesItems = append(salesItems, models.SalesItem{
 			ProductID: productID,
-			Quantity:  itemReq.Quantity,
+			Quantity:  float64(itemReq.Quantity),
 			UnitPrice: product.ProductPrice,
 		})
 	}
 
 	var userID primitive.ObjectID
-	if userIdStr, exists := c.Get("userId"); exists && userIdStr != nil {
-		userID, _ = primitive.ObjectIDFromHex(userIdStr.(string))
+	if userIdStr, exists := c.Get("userId"); exists {
+		if userIdStr != nil {
+			userID, _ = primitive.ObjectIDFromHex(userIdStr.(string))
+		}
 	}
 
+	// 2. Buscar usuário no Banco
 	user, err := s.userRepo.GetByID(userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Usuário não encontrado"})
@@ -99,7 +128,7 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 	newSale := &models.Sales{
 		UserID:     userID,
 		SalesID:    req.SalesID,
-		SalesValue: totalVenda,
+		SalesValue: totalPrice,
 		Status:     utils.StatusPending,
 		Itens:      salesItems,
 		Address:    req.Address,
@@ -107,55 +136,156 @@ func (s *SalesController) CreateSale(c *gin.Context) {
 		Payment:    req.Payment,
 	}
 
+	isPix := strings.ToUpper(req.Payment) == "PIX"
+
+	// Só gera Pix se o pagamento for exatamente "Pix"
+	if isPix {
+		PagBankURL := os.Getenv("PAGBANK_LINK")
+		token := os.Getenv("PAGBANK_TOKEN_TEST")
+
+		if token == "" {
+			erro.HandleError(c, erro.ErrTokenPagBank)
+			return
+		}
+
+		// 3. Montar o Payload no formato que o PagBank exige
+		pagbankPayload := map[string]interface{}{
+			"reference_id": req.SalesID,
+			"customer": map[string]interface{}{
+				"name":   user.Name,
+				"email":  user.Email,
+				"tax_id": user.CPF,
+			},
+			"items": itemsPagBank,
+			"qr_codes": []map[string]interface{}{
+				{
+					"amount": map[string]interface{}{
+						"value": totalVenda,
+					},
+					"expiration_date": time.Now().Add(10 * time.Second).Format(time.RFC3339),
+				},
+			},
+		}
+
+		jsonData, err := json.Marshal(pagbankPayload)
+		if err != nil {
+			erro.HandleError(c, erro.ErrBuildSale)
+			return
+		}
+
+		// 4. Criar a requisição HTTP nativa do Go
+		httpReq, err := http.NewRequestWithContext(c, "POST", PagBankURL, bytes.NewBuffer(jsonData))
+		if err != nil {
+			erro.HandleError(c, erro.ErrCreateHTTPRequest)
+			return
+		}
+
+		httpReq.Header.Set("Authorization", "Bearer "+token)
+		httpReq.Header.Set("Content-Type", "application/json")
+
+		// 5. Executar a requisição
+		client := &http.Client{Timeout: 10 * time.Minute}
+		resp, err := client.Do(httpReq)
+		if err != nil {
+			erro.HandleError(c, erro.ErrPagBankConnection)
+			return
+		}
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			erro.HandleError(c, erro.ErrPagBankRequestRefused)
+			return
+		}
+
+		// 6. Fazer o parse dinâmico da resposta do PagBank
+		var pagBankResponse map[string]interface{}
+		_ = json.Unmarshal(body, &pagBankResponse)
+
+		orderID := pagBankResponse["id"]
+
+		var qrCodeText, qrCodeLink string
+		if qrCodes, ok := pagBankResponse["qr_codes"].([]interface{}); ok && len(qrCodes) > 0 {
+			if firstQR, ok := qrCodes[0].(map[string]interface{}); ok {
+				qrCodeText, _ = firstQR["text"].(string)
+
+				if links, ok := firstQR["links"].([]interface{}); ok && len(links) > 0 {
+					if firstLink, ok := links[0].(map[string]interface{}); ok {
+						qrCodeLink, _ = firstLink["href"].(string)
+					}
+				}
+			}
+		}
+
+		response = gin.H{
+			"status":         "success",
+			"payment_id":     orderID,
+			"qr_code":        qrCodeText,
+			"qr_code_base64": qrCodeLink,
+			"message":        "Venda com Pix criada!",
+			"sale":           s.populateProducts(c, *newSale),
+		}
+	}
+
+	if len(response) == 0 {
+		response = gin.H{
+			"status":  "success",
+			"message": "Pedido realizado! Pague ao receber",
+			"sale":    s.populateProducts(c, *newSale),
+		}
+	}
+
+	// Salva o documento da venda inicial como 'pending' no MongoDB Atlas
 	if err := s.salesRepo.Create(c, newSale); err != nil {
+		log.Error("erro ao criar venda", utils.Function, utils.FnCallerName(), "error", err.Error())
 		erro.HandleError(c, erro.ErrInternalServer)
 		return
 	}
 
-	if req.Payment == "Pix" {
-		accessToken := os.Getenv("MP_ACCESS_TOKEN")
-		if accessToken == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "MP_ACCESS_TOKEN não configurado"})
-			return
-		}
+	// AUTO-CANCELAMENTO
+	if isPix {
+		saleIDParaTimeout := newSale.ID
 
-		cfg, _ := configMP.New(accessToken)
-		paymentClient := payment.NewClient(cfg)
-		payRequest := payment.Request{
-			TransactionAmount: utils.AroundFloat(totalVenda),
-			Description:       fmt.Sprintf("venda:%d", req.SalesID),
-			PaymentMethodID:   "pix",
-			Payer: &payment.PayerRequest{
-				Email: user.Email,
-			},
-		}
+		time.AfterFunc(10*time.Minute, func() {
+			// 1. Cria o MESMO contexto isolado do seu endpoint oficial
+			ctxBg, cancelBg := context.WithTimeout(context.Background(), 8*time.Second)
+			defer cancelBg()
 
-		resource, err := paymentClient.Create(c.Request.Context(), payRequest)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao gerar o Pix"})
-			return
-		}
+			// 2. Busca para ter certeza de que o cliente já não pagou nesses 30s
+			vendaAtual, errFetch := s.salesRepo.FindByID(ctxBg, saleIDParaTimeout)
+			if errFetch != nil || vendaAtual == nil {
+				return
+			}
 
-		pixData := resource.PointOfInteraction.TransactionData
-		saleDTO := s.populateProducts(c, *newSale)
+			// 3. Se continua pendente, executamos a mesma regra de negócio do UpdateSaleStatus
+			if vendaAtual.Status == utils.StatusPending {
+				log.Info("[TIMER] Tempo do Pix expirou. Cancelando pedido...", "saleId", saleIDParaTimeout.Hex())
 
-		c.JSON(http.StatusCreated, gin.H{
-			"status":         "success",
-			"payment_id":     resource.ID,
-			"qr_code":        pixData.QRCode,
-			"qr_code_base64": pixData.QRCodeBase64,
-			"message":        "Venda com Pix criada!",
-			"sale":           saleDTO,
+				// Executa a atualização no banco de dados
+				saleCancelada, errDB := s.salesRepo.UpdateStatus(ctxBg, saleIDParaTimeout, "cancelled")
+				if errDB != nil {
+					log.Error("[TIMER] Erro ao atualizar status pelo timer", "error", errDB.Error())
+					return
+				}
+
+				time.Sleep(1 * time.Second)
+
+				// 4. Se o banco atualizou, dispara o WebSocket/FCM IGUAL ao endpoint
+				if saleCancelada != nil && s.notifier != nil && !saleCancelada.UserID.IsZero() {
+					log.Info("[TIMER] Disparando WebSocket de cancelamento...")
+
+					// Usa os dados que acabaram de voltar fresquinhos do banco de dados
+					s.notifier.NotifyOrderStatus(ctxBg, saleCancelada.UserID, saleCancelada.ID, saleCancelada.SalesID, saleCancelada.Status)
+
+					log.Info("[TIMER] Cancelamento e notificação concluídos!")
+				}
+			}
 		})
-		return
 	}
 
-	saleDTO := s.populateProducts(c, *newSale)
-	c.JSON(http.StatusCreated, gin.H{
-		"status":  "success",
-		"message": "Pedido realizado! Pague ao receber.",
-		"sale":    saleDTO,
-	})
+	log.Debug("venda criada com sucesso", utils.Function, utils.FnCallerName())
+	c.JSON(http.StatusCreated, response)
 }
 
 func (s *SalesController) GetSales(c *gin.Context) {
