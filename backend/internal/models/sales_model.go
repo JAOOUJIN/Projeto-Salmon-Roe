@@ -48,16 +48,17 @@ type SalesDTO struct {
 }
 
 type CreateSaleRequest struct {
-	SalesID  int64                   `json:"cd_venda" binding:"required"`
-	Itens    []CreateSaleItemRequest `json:"itens" binding:"required,min=1"`
-	Address  string                  `json:"address"`
-	Delivery string                  `json:"delivery"`
-	Payment  string                  `json:"payment"`
+	SalesID   int64                   `json:"cd_venda" binding:"required"`
+	Itens     []CreateSaleItemRequest `json:"itens" binding:"required,min=1"`
+	Address   string                  `json:"address"`
+	Delivery  string                  `json:"delivery"`
+	Payment   string                  `json:"payment"`
+	CPFClient string                  `json:"cpf_client"`
 }
 
 type CreateSaleItemRequest struct {
 	ProductID string  `json:"cd_produto" binding:"required"`
-	Quantity  float64 `json:"qt_item" binding:"required,min=1"`
+	Quantity  int64   `json:"qt_item" binding:"required,min=1"`
 	UnitPrice float64 `json:"vl_unitario" binding:"required"`
 }
 
