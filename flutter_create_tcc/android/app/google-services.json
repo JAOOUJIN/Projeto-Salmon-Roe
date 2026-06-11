@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658492732118",
+    "project_id": "salmon-roe-a38eb",
+    "storage_bucket": "salmon-roe-a38eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658492732118:android:c921a9db3ddc0e784acf77",
+        "android_client_info": {
+          "package_name": "br.com.roeshushitcc.flutter_create_tcc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3J5CxvpNB2Jc9cjMGfzkBxx5H8sHpHE8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

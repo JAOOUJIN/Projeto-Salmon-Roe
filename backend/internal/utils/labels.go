@@ -1,0 +1,32 @@
+package utils
+
+// Campos utilizados nos Logs
+const (
+	BranchId              = "branchId"
+	From                  = "from"
+	To                    = "To"
+	PeriodType            = "periodType"
+	Function              = "function"
+	ReportData            = "reportData"
+	ValidDate             = "efetuando validação das datas"
+	Params                = "params"
+	SearchDB              = "realizando consulta ao banco de dados"
+	Week                  = "week"
+	Month                 = "month"
+	Day                   = "day"
+	ValidParams           = "validando parâmetros da requisição"
+	MovementDt            = "movementDt"
+	NumberOfWeeks         = "numberOfWeeks"
+	QueryParamsMovementDt = "movement_date"
+	Filter                = "filter"
+	EmptyString           = ""
+	DateFrom              = "date_from"
+	DateTo                = "date_to"
+	Group                 = "group"
+	SubGroup              = "subGroup"
+	EmptyResultData       = "nenhum resultado encontrado"
+	ContentType           = "Content-Type"
+	ContentDisposition    = "Content-Disposition"
+	ErrCodeInvalidOrExpir = "código inválido ou expirado"
+	ErrorLabel            = "error"
+)
